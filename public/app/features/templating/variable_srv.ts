@@ -1,7 +1,6 @@
 // Libaries
-import angular, { IQService, ILocationService, auto, IPromise } from 'angular';
+import angular, { auto, ILocationService, IPromise, IQService } from 'angular';
 import _ from 'lodash';
-
 // Utils & Services
 import coreModule from 'app/core/core_module';
 import { variableTypes } from './variable';
@@ -9,10 +8,11 @@ import { Graph } from 'app/core/utils/dag';
 import { TemplateSrv } from 'app/features/templating/template_srv';
 import { TimeSrv } from 'app/features/dashboard/services/TimeSrv';
 import { DashboardModel } from 'app/features/dashboard/state/DashboardModel';
-
 // Types
 import { TimeRange } from '@grafana/data';
 import { CoreEvents } from 'app/types';
+import { store } from 'app/store/store';
+import { createVariable, updateVariable } from './state/actions';
 
 export class VariableSrv {
   dashboard: DashboardModel;
@@ -111,6 +111,12 @@ export class VariableSrv {
       throw {
         message: 'Unable to find variable constructor for ' + model.type,
       };
+    }
+
+    if (model.name) {
+      store.dispatch(updateVariable({ model }));
+    } else {
+      store.dispatch(createVariable({ type: model.type }));
     }
 
     const variable = this.$injector.instantiate(ctor, { model: model });

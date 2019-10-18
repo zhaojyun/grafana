@@ -6,6 +6,8 @@ import DatasourceSrv from '../plugins/datasource_srv';
 import { VariableSrv } from './all';
 import { TemplateSrv } from './template_srv';
 import { AppEvents } from '@grafana/data';
+import { store } from '../../store/store';
+import { updateVariable } from './state/actions';
 
 export class VariableEditorCtrl {
   /** @ngInject */
@@ -164,6 +166,8 @@ export class VariableEditorCtrl {
 
     $scope.update = () => {
       if ($scope.isValid()) {
+        store.dispatch(updateVariable({ model: $scope.current }));
+
         $scope.runQuery().then(() => {
           $scope.reset();
           $scope.mode = 'list';
