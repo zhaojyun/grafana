@@ -1,5 +1,3 @@
-import { DataSourceApi } from '@grafana/ui';
-
 export enum VariableRefresh {
   never,
   onDashboardLoad,
@@ -12,20 +10,24 @@ export enum VariableHide {
   hideLabel,
 }
 
+export enum VariableSort {
+  disabled,
+  alphabeticalAsc,
+  alphabeticalDesc,
+  numericalAsc,
+  numericalDesc,
+  alphabeticalCaseInsensitiveAsc,
+  alphabeticalCaseInsensitiveDesc,
+}
+
 export interface VariableOption {
   selected: boolean;
-  text: string;
-  value: string;
+  text: string | string[];
+  value: string | string[];
+  isNone?: boolean;
 }
 
-export interface VariableTag {
-  selected: boolean;
-  text: string;
-  values: string[];
-  valuesText: string;
-}
-
-export type VariableType = 'query' | 'adhoc' | 'constant' | 'datasource' | 'interval' | 'textbox';
+export type VariableType = 'query' | 'adhoc' | 'constant' | 'datasource' | 'interval' | 'textbox' | 'custom';
 
 export interface AdHocVariableFilter {
   key: string;
@@ -33,58 +35,73 @@ export interface AdHocVariableFilter {
   value: string;
 }
 
-export interface AdHocVariable extends VariableModel {
-  datasource: DataSourceApi;
+export interface AdHocVariableModel extends VariableModel {
+  datasource: string;
   filters: AdHocVariableFilter[];
 }
 
-export interface CustomVariable extends ConstantVariable {
+export interface CustomVariableModel extends VariableWithOptions {
   allValue: string;
   includeAll: boolean;
   multi: boolean;
 }
 
-export interface DatasourceVariable extends ConstantVariable {
+export interface DatasourceVariableModel extends VariableWithOptions {
   includeAll: boolean;
   multi: boolean;
   refresh: VariableRefresh;
   regex: string;
 }
 
-export interface IntervalVariable extends ConstantVariable {
+export interface IntervalVariableModel extends VariableWithOptions {
   auto: boolean;
   auto_min: string;
   auto_count: number;
   refresh: VariableRefresh;
 }
 
-export interface QueryVariable extends ConstantVariable {
+export interface QueryVariableModel extends VariableWithOptions {
   allValue: string;
-  datasource: DataSourceApi;
+  datasource: string;
   definition: string;
   includeAll: boolean;
   multi: boolean;
   refresh: VariableRefresh;
   regex: string;
-  sort: number;
-  tags: VariableTag[];
+  sort: VariableSort;
+  tags: string[];
   tagsQuery: string;
   tagValuesQuery: string;
   useTags: boolean;
 }
 
-export interface TextBoxVariable extends ConstantVariable {}
+export interface TextBoxVariableModel extends VariableWithOptions {}
 
-export interface ConstantVariable extends VariableModel {
-  current: VariableModel;
+export interface ConstantVariableModel extends VariableWithOptions {}
+
+export interface VariableWithOptions extends VariableModel {
+  current: VariableOption;
   options: VariableOption[];
   query: string;
 }
 
 export interface VariableModel {
+  readonly id: number;
   type: VariableType;
   name: string;
   label: string;
   hide: VariableHide;
   skipUrlSync: boolean;
+  initLock: Promise<any>;
+}
+
+export interface VariableHandler<T extends VariableModel = VariableModel> {
+  canHandle: (variable: T) => boolean;
+  dependsOn: (variable: T, variableToTest: T) => boolean;
+  updateOptions: (variable: T, searchFilter?: string) => Promise<T>;
+  setValueFromUrl: (variable: T, urlValue: string | string[]) => Promise<T>;
+  setValue: (variable: T, option: VariableOption) => Promise<void>;
+  getDefaults: () => T;
+  getOptions: (variable: T, searchFilter?: string) => Promise<VariableOption[]>;
+  getTags: (variable: T, searchFilter?: string) => Promise<string[]>;
 }

@@ -1,9 +1,10 @@
-import { QueryVariable } from '../query_variable';
+import { metricNamesToVariableValues, QueryVariable } from '../query_variable';
+import { QueryVariableModel } from '../state/types';
 
 describe('QueryVariable', () => {
   describe('when creating from model', () => {
     it('should set defaults', () => {
-      const variable = new QueryVariable({}, null, null, null, null);
+      const variable = new QueryVariable({}, null, null);
       expect(variable.datasource).toBe(null);
       expect(variable.refresh).toBe(0);
       expect(variable.sort).toBe(0);
@@ -15,7 +16,7 @@ describe('QueryVariable', () => {
     });
 
     it('get model should copy changes back to model', () => {
-      const variable = new QueryVariable({}, null, null, null, null);
+      const variable = new QueryVariable({}, null, null);
       variable.options = [{ text: 'test' }];
       variable.datasource = 'google';
       variable.regex = 'asd';
@@ -30,7 +31,7 @@ describe('QueryVariable', () => {
     });
 
     it('if refresh != 0 then remove options in presisted mode', () => {
-      const variable = new QueryVariable({}, null, null, null, null);
+      const variable = new QueryVariable({}, null, null);
       variable.options = [{ text: 'test' }];
       variable.refresh = 1;
 
@@ -40,7 +41,7 @@ describe('QueryVariable', () => {
   });
 
   describe('can convert and sort metric names', () => {
-    const variable = new QueryVariable({}, null, null, null, null);
+    const variable = new QueryVariable({}, null, null);
     let input: any;
 
     beforeEach(() => {
@@ -65,7 +66,7 @@ describe('QueryVariable', () => {
 
       beforeEach(() => {
         variable.sort = 3; // Numerical (asc)
-        result = variable.metricNamesToVariableValues(input);
+        result = metricNamesToVariableValues((variable as any) as QueryVariableModel, input);
       });
 
       it('should return in same order', () => {
@@ -86,7 +87,7 @@ describe('QueryVariable', () => {
 
       beforeEach(() => {
         variable.sort = 5; // Alphabetical CI (asc)
-        result = variable.metricNamesToVariableValues(input);
+        result = metricNamesToVariableValues((variable as any) as QueryVariableModel, input);
       });
 
       it('should return in same order', () => {

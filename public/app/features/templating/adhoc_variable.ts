@@ -1,11 +1,14 @@
-import _ from 'lodash';
-import { Variable, assignModelProperties, variableTypes } from './variable';
+import { assignModelProperties, Variable, variableTypes } from './variable';
+import { AdHocVariableModel, VariableHandler } from './state/types';
+import { filtersAdded } from './state/actions';
+import { store } from '../../store/store';
 
-export class AdhocVariable implements Variable {
-  filters: any[];
-  skipUrlSync: boolean;
-
-  defaults: any = {
+export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
+  canHandle: variable => variable.type === 'adhoc',
+  dependsOn: (variable, variableToTest) => false,
+  updateOptions: (variable, searchFilter) => Promise.resolve(variable),
+  getDefaults: () => ({
+    id: null,
     type: 'adhoc',
     name: '',
     label: '',
@@ -13,38 +16,18 @@ export class AdhocVariable implements Variable {
     datasource: null,
     filters: [],
     skipUrlSync: false,
-  };
-
-  /** @ngInject */
-  constructor(private model: any) {
-    assignModelProperties(this, model, this.defaults);
-  }
-
-  setValue(option: any) {
-    return Promise.resolve();
-  }
-
-  getSaveModel() {
-    assignModelProperties(this.model, this, this.defaults);
-    return this.model;
-  }
-
-  updateOptions() {
-    return Promise.resolve();
-  }
-
-  dependsOn(variable: any) {
-    return false;
-  }
-
-  setValueFromUrl(urlValue: string[] | string[]) {
-    if (!_.isArray(urlValue)) {
+    initLock: null,
+  }),
+  getOptions: (variable, searchFilter) => Promise.resolve([]),
+  getTags: (variable, searchFilter) => Promise.resolve([]),
+  setValueFromUrl: (variable, urlValue) => {
+    if (!Array.isArray(urlValue)) {
       urlValue = [urlValue];
     }
 
-    this.filters = urlValue.map(item => {
+    const filters = urlValue.map(item => {
       const values = item.split('|').map(value => {
-        return this.unescapeDelimiter(value);
+        return unescapeDelimiter(value);
       });
       return {
         key: values[0],
@@ -53,7 +36,47 @@ export class AdhocVariable implements Variable {
       };
     });
 
-    return Promise.resolve();
+    store.dispatch(filtersAdded({ id: variable.id, filters }));
+    const updatedVariable = store.getState().templating.variables[variable.id];
+
+    return Promise.resolve(updatedVariable);
+  },
+  setValue: (variable, option) => Promise.resolve(),
+};
+
+const unescapeDelimiter = (value: string) => {
+  return value.replace(/__gfp__/g, '|');
+};
+
+export class AdhocVariable implements Variable {
+  filters: any[];
+  skipUrlSync: boolean;
+
+  /** @ngInject */
+  constructor(private model: any) {
+    assignModelProperties(this, model, adhocVariableHandler.getDefaults());
+  }
+
+  setValue(option: any) {
+    return adhocVariableHandler.setValue(null, option);
+  }
+
+  getSaveModel() {
+    assignModelProperties(this.model, this, adhocVariableHandler.getDefaults());
+    return this.model;
+  }
+
+  updateOptions() {
+    return adhocVariableHandler.updateOptions((this as any) as AdHocVariableModel);
+  }
+
+  dependsOn(variable: any) {
+    return adhocVariableHandler.dependsOn((this as any) as AdHocVariableModel, variable);
+  }
+
+  async setValueFromUrl(urlValue: string[] | string[]) {
+    const updatedVariable = await adhocVariableHandler.setValueFromUrl((this as any) as AdHocVariableModel, urlValue);
+    assignModelProperties(this, updatedVariable, adhocVariableHandler.getDefaults());
   }
 
   getValueForUrl() {
@@ -68,10 +91,6 @@ export class AdhocVariable implements Variable {
 
   escapeDelimiter(value: string) {
     return value.replace(/\|/g, '__gfp__');
-  }
-
-  unescapeDelimiter(value: string) {
-    return value.replace(/__gfp__/g, '|');
   }
 
   setFilters(filters: any[]) {

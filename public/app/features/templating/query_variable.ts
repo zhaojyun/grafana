@@ -1,14 +1,198 @@
 import _ from 'lodash';
 import { assignModelProperties, containsVariable, Variable, variableTypes } from './variable';
-import { stringToJsRegex } from '@grafana/data';
 import DatasourceSrv from '../plugins/datasource_srv';
 import { TemplateSrv } from './template_srv';
 import { VariableSrv } from './variable_srv';
-import { TimeSrv } from '../dashboard/services/TimeSrv';
+import { getTimeSrv } from '../dashboard/services/TimeSrv';
+import {
+  QueryVariableModel,
+  VariableHandler,
+  VariableHide,
+  VariableOption,
+  VariableRefresh,
+  VariableSort,
+} from './state/types';
+import { DataSourceApi, MetricFindValue } from '@grafana/ui';
+import { stringToJsRegex } from '@grafana/data';
+import { optionsLoaded, setOptionFromUrl, setValue, tagsLoaded } from './state/actions';
+import { store } from '../../store/store';
+import { getDataSourceSrv } from '@grafana/runtime';
 
-function getNoneOption() {
-  return { text: 'None', value: '', isNone: true };
+function getNoneOption(): VariableOption {
+  return { text: 'None', value: '', isNone: true, selected: false };
 }
+
+export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
+  canHandle: variable => variable.type === 'query',
+  dependsOn: (variable, variableToTest) =>
+    containsVariable(variable.query, variable.datasource, variable.regex, variableToTest.name),
+  updateOptions: async (variable, searchFilter) => {
+    const options = await queryVariableHandler.getOptions(variable, searchFilter);
+    const tags = await queryVariableHandler.getTags(variable, searchFilter);
+    await store.dispatch(optionsLoaded({ id: variable.id, options }));
+    await store.dispatch(tagsLoaded({ id: variable.id, tags }));
+
+    const updatedVariable = store.getState().templating.variables[variable.id];
+
+    return updatedVariable as QueryVariableModel;
+  },
+  getDefaults: () => ({
+    id: null,
+    type: 'query',
+    name: '',
+    label: '',
+    hide: VariableHide.dontHide,
+    datasource: null,
+    definition: '',
+    refresh: VariableRefresh.never,
+    regex: '',
+    query: '',
+    sort: VariableSort.disabled,
+    skipUrlSync: false,
+    multi: false,
+    includeAll: false,
+    allValue: null,
+    options: [],
+    current: null,
+    tags: [],
+    useTags: false,
+    tagsQuery: '',
+    tagValuesQuery: '',
+    initLock: null,
+  }),
+  getOptions: async (variable, searchFilter) => {
+    const datasource = await getDataSourceSrv().get(variable.datasource);
+    const options = await updateOptionsFromMetricFindQuery(variable, datasource, searchFilter);
+    return options;
+  },
+  getTags: async (variable, searchFilter) => {
+    const datasource = await getDataSourceSrv().get(variable.datasource);
+    const tags = await updateTags(variable, datasource, searchFilter);
+    return tags;
+  },
+  setValueFromUrl: async (variable, urlValue) => {
+    await store.dispatch(setOptionFromUrl(variable, urlValue));
+    return Promise.resolve(store.getState().templating.variables[variable.id]);
+  },
+  setValue: async (variable, option) => {
+    await store.dispatch(setValue(variable, option));
+  },
+};
+
+const sortVariableValues = (options: any[], sortOrder: number) => {
+  if (sortOrder === 0) {
+    return options;
+  }
+
+  const sortType = Math.ceil(sortOrder / 2);
+  const reverseSort = sortOrder % 2 === 0;
+
+  if (sortType === 1) {
+    options = _.sortBy(options, 'text');
+  } else if (sortType === 2) {
+    options = _.sortBy(options, opt => {
+      const matches = opt.text.match(/.*?(\d+).*/);
+      if (!matches || matches.length < 2) {
+        return -1;
+      } else {
+        return parseInt(matches[1], 10);
+      }
+    });
+  } else if (sortType === 3) {
+    options = _.sortBy(options, opt => {
+      return _.toLower(opt.text);
+    });
+  }
+
+  if (reverseSort) {
+    options = options.reverse();
+  }
+
+  return options;
+};
+
+export const metricNamesToVariableValues = (variable: QueryVariableModel, metricNames: any[]) => {
+  let regex, i, matches;
+  let options: VariableOption[] = [];
+
+  if (variable.regex) {
+    regex = stringToJsRegex(new TemplateSrv().replace(variable.regex, {}, 'regex'));
+  }
+  for (i = 0; i < metricNames.length; i++) {
+    const item = metricNames[i];
+    let text = item.text === undefined || item.text === null ? item.value : item.text;
+
+    let value = item.value === undefined || item.value === null ? item.text : item.value;
+
+    if (_.isNumber(value)) {
+      value = value.toString();
+    }
+
+    if (_.isNumber(text)) {
+      text = text.toString();
+    }
+
+    if (regex) {
+      matches = regex.exec(value);
+      if (!matches) {
+        continue;
+      }
+      if (matches.length > 1) {
+        value = matches[1];
+        text = matches[1];
+      }
+    }
+
+    options.push({ text: text, value: value, selected: false });
+  }
+
+  options = _.uniqBy(options, 'value');
+  return sortVariableValues(options, variable.sort);
+};
+
+const metricFindQuery = (
+  variable: QueryVariableModel,
+  datasource: DataSourceApi,
+  query: string,
+  searchFilter?: string
+): Promise<MetricFindValue[]> => {
+  const options: any = { range: undefined, variable, searchFilter };
+
+  if (variable.refresh === VariableRefresh.onTimeRangeChanged) {
+    options.range = getTimeSrv().timeRange();
+  }
+
+  return datasource.metricFindQuery(query, options);
+};
+
+const updateOptionsFromMetricFindQuery = async (
+  variable: QueryVariableModel,
+  datasource: DataSourceApi,
+  searchFilter?: string
+) => {
+  const results = await metricFindQuery(variable, datasource, variable.query, searchFilter);
+  const options: VariableOption[] = metricNamesToVariableValues(variable, results);
+  if (variable.includeAll) {
+    options.unshift({ text: 'All', value: '$__all', selected: false });
+  }
+  if (!options.length) {
+    options.push(getNoneOption());
+  }
+
+  return options;
+};
+
+const updateTags = async (variable: QueryVariableModel, datasource: DataSourceApi, searchFilter?: string) => {
+  const tags = [];
+  if (variable.useTags) {
+    const results = await metricFindQuery(variable, datasource, variable.tagsQuery, searchFilter);
+    for (let i = 0; i < results.length; i++) {
+      tags.push(results[i].text);
+    }
+  }
+
+  return tags;
+};
 
 export class QueryVariable implements Variable {
   datasource: any;
@@ -29,45 +213,15 @@ export class QueryVariable implements Variable {
   skipUrlSync: boolean;
   definition: string;
 
-  defaults: any = {
-    type: 'query',
-    label: null,
-    query: '',
-    regex: '',
-    sort: 0,
-    datasource: null,
-    refresh: 0,
-    hide: 0,
-    name: '',
-    multi: false,
-    includeAll: false,
-    allValue: null,
-    options: [],
-    current: {},
-    tags: [],
-    useTags: false,
-    tagsQuery: '',
-    tagValuesQuery: '',
-    skipUrlSync: false,
-    definition: '',
-  };
-
   /** @ngInject */
-  constructor(
-    private model: any,
-    private datasourceSrv: DatasourceSrv,
-    private templateSrv: TemplateSrv,
-    private variableSrv: VariableSrv,
-    private timeSrv: TimeSrv
-  ) {
+  constructor(private model: any, private datasourceSrv: DatasourceSrv, private variableSrv: VariableSrv) {
     // copy model properties to this instance
-    assignModelProperties(this, model, this.defaults);
-    this.updateOptionsFromMetricFindQuery.bind(this);
+    assignModelProperties(this, model, queryVariableHandler.getDefaults());
   }
 
   getSaveModel() {
     // copy back model properties to model
-    assignModelProperties(this.model, this, this.defaults);
+    assignModelProperties(this.model, this, queryVariableHandler.getDefaults());
 
     // remove options
     if (this.refresh !== 0) {
@@ -81,8 +235,10 @@ export class QueryVariable implements Variable {
     return this.variableSrv.setOptionAsCurrent(this, option);
   }
 
-  setValueFromUrl(urlValue: any) {
-    return this.variableSrv.setOptionFromUrl(this, urlValue);
+  async setValueFromUrl(urlValue: any) {
+    const variable: QueryVariableModel = (this as any) as QueryVariableModel;
+    const updatedVariable = await queryVariableHandler.setValueFromUrl(variable, urlValue);
+    assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
   }
 
   getValueForUrl() {
@@ -92,141 +248,26 @@ export class QueryVariable implements Variable {
     return this.current.value;
   }
 
-  updateOptions(searchFilter?: string) {
-    return this.datasourceSrv
-      .get(this.datasource)
-      .then(ds => this.updateOptionsFromMetricFindQuery(ds, searchFilter))
-      .then(this.updateTags.bind(this))
-      .then(this.variableSrv.validateVariableSelectionState.bind(this.variableSrv, this));
+  async updateOptions(searchFilter?: string) {
+    const variable: QueryVariableModel = (this as any) as QueryVariableModel;
+    const updatedVariable = await queryVariableHandler.updateOptions(variable, searchFilter);
+    assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
+
+    this.variableSrv.validateVariableSelectionState.bind(this.variableSrv, this);
   }
 
-  updateTags(datasource: any) {
-    if (this.useTags) {
-      return this.metricFindQuery(datasource, this.tagsQuery).then((results: any[]) => {
-        this.tags = [];
-        for (let i = 0; i < results.length; i++) {
-          this.tags.push(results[i].text);
-        }
-        return datasource;
-      });
-    } else {
-      delete this.tags;
-    }
-
-    return datasource;
-  }
-
-  getValuesForTag(tagKey: string) {
-    return this.datasourceSrv.get(this.datasource).then(datasource => {
-      const query = this.tagValuesQuery.replace('$tag', tagKey);
-      return this.metricFindQuery(datasource, query).then((results: any) => {
-        return _.map(results, value => {
-          return value.text;
-        });
-      });
+  async getValuesForTag(tagKey: string) {
+    const datasource = await this.datasourceSrv.get(this.datasource);
+    const query = this.tagValuesQuery.replace('$tag', tagKey);
+    const variable: QueryVariableModel = (this as any) as QueryVariableModel;
+    const results = await metricFindQuery(variable, datasource, query);
+    return _.map(results, value => {
+      return value.text;
     });
-  }
-
-  updateOptionsFromMetricFindQuery(datasource: any, searchFilter?: string) {
-    return this.metricFindQuery(datasource, this.query, searchFilter).then((results: any) => {
-      this.options = this.metricNamesToVariableValues(results);
-      if (this.includeAll) {
-        this.addAllOption();
-      }
-      if (!this.options.length) {
-        this.options.push(getNoneOption());
-      }
-      return datasource;
-    });
-  }
-
-  metricFindQuery(datasource: any, query: string, searchFilter?: string) {
-    const options: any = { range: undefined, variable: this, searchFilter };
-
-    if (this.refresh === 2) {
-      options.range = this.timeSrv.timeRange();
-    }
-
-    return datasource.metricFindQuery(query, options);
-  }
-
-  addAllOption() {
-    this.options.unshift({ text: 'All', value: '$__all' });
-  }
-
-  metricNamesToVariableValues(metricNames: any[]) {
-    let regex, options, i, matches;
-    options = [];
-
-    if (this.regex) {
-      regex = stringToJsRegex(this.templateSrv.replace(this.regex, {}, 'regex'));
-    }
-    for (i = 0; i < metricNames.length; i++) {
-      const item = metricNames[i];
-      let text = item.text === undefined || item.text === null ? item.value : item.text;
-
-      let value = item.value === undefined || item.value === null ? item.text : item.value;
-
-      if (_.isNumber(value)) {
-        value = value.toString();
-      }
-
-      if (_.isNumber(text)) {
-        text = text.toString();
-      }
-
-      if (regex) {
-        matches = regex.exec(value);
-        if (!matches) {
-          continue;
-        }
-        if (matches.length > 1) {
-          value = matches[1];
-          text = matches[1];
-        }
-      }
-
-      options.push({ text: text, value: value });
-    }
-
-    options = _.uniqBy(options, 'value');
-    return this.sortVariableValues(options, this.sort);
-  }
-
-  sortVariableValues(options: any[], sortOrder: number) {
-    if (sortOrder === 0) {
-      return options;
-    }
-
-    const sortType = Math.ceil(sortOrder / 2);
-    const reverseSort = sortOrder % 2 === 0;
-
-    if (sortType === 1) {
-      options = _.sortBy(options, 'text');
-    } else if (sortType === 2) {
-      options = _.sortBy(options, opt => {
-        const matches = opt.text.match(/.*?(\d+).*/);
-        if (!matches || matches.length < 2) {
-          return -1;
-        } else {
-          return parseInt(matches[1], 10);
-        }
-      });
-    } else if (sortType === 3) {
-      options = _.sortBy(options, opt => {
-        return _.toLower(opt.text);
-      });
-    }
-
-    if (reverseSort) {
-      options = options.reverse();
-    }
-
-    return options;
   }
 
   dependsOn(variable: any) {
-    return containsVariable(this.query, this.datasource, this.regex, variable.name);
+    return queryVariableHandler.dependsOn((this as any) as QueryVariableModel, variable);
   }
 }
 // @ts-ignore

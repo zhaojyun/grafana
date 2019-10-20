@@ -7,7 +7,7 @@ import { VariableSrv } from './all';
 import { TemplateSrv } from './template_srv';
 import { AppEvents } from '@grafana/data';
 import { store } from '../../store/store';
-import { updateVariable } from './state/actions';
+import { changeVariableType, createVariableFromModel, duplicateVariable } from './state/actions';
 
 export class VariableEditorCtrl {
   /** @ngInject */
@@ -157,16 +157,17 @@ export class VariableEditorCtrl {
       });
     };
 
-    $scope.duplicate = (variable: { getSaveModel: () => void; name: string }) => {
+    $scope.duplicate = (variable: { getSaveModel: () => void; name: string; id: number }) => {
       const clone = _.cloneDeep(variable.getSaveModel());
-      $scope.current = variableSrv.createVariableFromModel(clone);
+      store.dispatch(duplicateVariable({ copyFromId: variable.id }));
+      $scope.current = variableSrv.createVariableFromModel(-1, clone, false);
       $scope.current.name = 'copy_of_' + variable.name;
       variableSrv.addVariable($scope.current);
     };
 
     $scope.update = () => {
       if ($scope.isValid()) {
-        store.dispatch(updateVariable({ model: $scope.current }));
+        store.dispatch(createVariableFromModel({ id: $scope.current.id, model: $scope.current }));
 
         $scope.runQuery().then(() => {
           $scope.reset();
@@ -178,7 +179,7 @@ export class VariableEditorCtrl {
 
     $scope.reset = () => {
       $scope.currentIsNew = true;
-      $scope.current = variableSrv.createVariableFromModel({ type: 'query' });
+      $scope.current = variableSrv.createVariableFromModel(-1, { type: 'query' }, false);
 
       // this is done here in case a new data source type variable was added
       $scope.datasources = _.filter(datasourceSrv.getMetricSources(), ds => {
@@ -195,9 +196,14 @@ export class VariableEditorCtrl {
 
     $scope.typeChanged = function() {
       const old = $scope.current;
-      $scope.current = variableSrv.createVariableFromModel({
-        type: $scope.current.type,
-      });
+      store.dispatch(changeVariableType({ id: old.id, changeToType: $scope.current.type }));
+      $scope.current = variableSrv.createVariableFromModel(
+        old.id,
+        {
+          type: $scope.current.type,
+        },
+        false
+      );
       $scope.current.name = old.name;
       $scope.current.label = old.label;
 

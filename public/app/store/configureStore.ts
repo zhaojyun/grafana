@@ -27,7 +27,7 @@ export function configureStore() {
       ? applyMiddleware(toggleLogActionsMiddleware, thunk, logger)
       : applyMiddleware(thunk);
 
-  const store: any = createStore(createRootReducer(), {}, composeEnhancers(storeEnhancers));
+  const store = createStore(createRootReducer(), {}, composeEnhancers(storeEnhancers));
   setStore(store);
   return store;
 }

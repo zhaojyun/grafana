@@ -1,74 +1,278 @@
-import { adHocVariableInstanceReducer, AdHocVariableState } from './adHocVariableReducer';
-import { ActionOf } from '../../../core/redux';
-import { CreateVariable, createVariable, UpdateVariable, updateVariable } from './actions';
-import { VariableType } from './types';
-import { Reducer } from 'redux';
+import { reducerFactory } from '../../../core/redux';
+import {
+  changeVariableType,
+  createVariableFromModel,
+  duplicateVariable,
+  filtersAdded,
+  optionsLoaded,
+  selectOptionsForCurrentValue,
+  setOptionAsCurrent,
+  tagsLoaded,
+  updateVariable,
+} from './actions';
+import { VariableHandler, VariableModel, VariableOption, VariableWithOptions } from './types';
+import { adhocVariableHandler } from '../adhoc_variable';
+import { queryVariableHandler } from '../query_variable';
 
-export const NEW_TEMPLATING_VARIABLE = 'NEW_TEMPLATING_VARIABLE';
-
-export const getReducerFromType = (type: VariableType): Reducer => {
-  switch (type) {
-    case 'adhoc':
-      return adHocVariableInstanceReducer;
-    case 'query':
-      return state => state;
-    default:
-      throw new Error(`No reducer found for type:${type}`);
-  }
-};
+export const variableHandlers: VariableHandler[] = [adhocVariableHandler, queryVariableHandler];
 
 export interface TemplatingState {
-  [varibleType: string]: any;
+  variables: VariableModel[];
 }
 
 export const initialState: TemplatingState = {
-  adhoc: {} as AdHocVariableState,
-  query: {},
+  variables: [],
 };
 
-export const templatingReducer = (state: TemplatingState = initialState, action: ActionOf<any>): TemplatingState => {
-  switch (action.type) {
-    case createVariable.type:
-      const { type } = action.payload as CreateVariable;
-      const createReducer = getReducerFromType(type);
-      const newCreateState = {
-        ...state[type],
-        [NEW_TEMPLATING_VARIABLE]: createReducer(state[type], action),
-      };
+export const templatingReducer = reducerFactory<TemplatingState>(initialState)
+  .addMapper({
+    filter: createVariableFromModel,
+    mapper: (state, action) => {
+      const { id, model } = action.payload;
+      const handler = variableHandlers.filter(handler => handler.canHandle(model))[0];
+      if (!handler) {
+        return state;
+      }
+
+      const defaults = { ...handler.getDefaults(), ...model, id };
+
+      if (id === state.variables.length) {
+        return {
+          ...state,
+          variables: [...state.variables, defaults],
+        };
+      }
+
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
+
+        return {
+          ...item,
+          ...defaults,
+        };
+      });
+
       return {
         ...state,
-        [type]: {
-          ...newCreateState,
-        },
+        variables,
       };
-      break;
-    case updateVariable.type:
-      const { model } = action.payload as UpdateVariable<any>;
-      if (!model.name) {
-        throw new Error('Model must include name');
-      }
+    },
+  })
+  .addMapper({
+    filter: updateVariable,
+    mapper: (state, action) => {
+      const { id, model } = action.payload;
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
 
-      const updateReducer = getReducerFromType(model.type);
-      const itemState = state[model.type][model.name];
-      const newItemState = state[model.type][NEW_TEMPLATING_VARIABLE];
-      const newState: TemplatingState = {
+        return {
+          ...item,
+          ...model,
+        };
+      });
+
+      return {
         ...state,
-        [model.type]: {
-          ...state[model.type],
-          [model.name]: updateReducer(itemState || newItemState, action),
-        },
+        variables,
       };
-
-      if (newItemState) {
-        delete newState[model.type][NEW_TEMPLATING_VARIABLE];
+    },
+  })
+  .addMapper({
+    filter: changeVariableType,
+    mapper: (state, action) => {
+      const { id, changeToType } = action.payload;
+      const handler = variableHandlers.filter(handler => handler.canHandle({ type: changeToType } as VariableModel))[0];
+      if (!handler) {
+        return state;
       }
 
-      return newState;
-      break;
-    default:
-      return state;
-  }
-};
+      const defaults = { ...handler.getDefaults(), id };
+
+      if (id === state.variables.length) {
+        return {
+          ...state,
+          variables: [...state.variables, defaults],
+        };
+      }
+
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
+
+        return {
+          ...defaults,
+          id: item.id,
+          name: item.name,
+          label: item.label,
+        };
+      });
+
+      return {
+        ...state,
+        variables,
+      };
+    },
+  })
+  .addMapper({
+    filter: duplicateVariable,
+    mapper: (state, action) => {
+      const { copyFromId } = action.payload;
+      const copy = { ...state.variables[copyFromId] };
+      copy.id = state.variables.length;
+      copy.name = `copy_of_${copy.name}`;
+
+      return {
+        ...state,
+        variables: [...state.variables, copy],
+      };
+    },
+  })
+  .addMapper({
+    filter: setOptionAsCurrent,
+    mapper: (state, action) => {
+      const { id, option } = action.payload;
+
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
+
+        const current = { ...option };
+
+        if (Array.isArray(current.text) && current.text.length > 0) {
+          current.text = current.text.join(' + ');
+        } else if (Array.isArray(current.value) && current.value[0] !== '$__all') {
+          current.text = current.value.join(' + ');
+        }
+
+        return {
+          ...item,
+          current,
+        };
+      });
+
+      return {
+        ...state,
+        variables,
+      };
+    },
+  })
+  .addMapper({
+    filter: selectOptionsForCurrentValue,
+    mapper: (state, action) => {
+      const { id } = action.payload;
+
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
+
+        const itemWithOptions = (item as unknown) as VariableWithOptions;
+        const currentValue = itemWithOptions.current.value;
+        const options: VariableOption[] = itemWithOptions.options.map(option => {
+          const retVal = {
+            ...option,
+            selected: false,
+          };
+
+          if (Array.isArray(currentValue)) {
+            for (let y = 0; y < currentValue.length; y++) {
+              const value = currentValue[y];
+              if (option.value === value) {
+                retVal.selected = true;
+              }
+            }
+          } else if (option.value === currentValue) {
+            retVal.selected = true;
+          }
+
+          return retVal;
+        });
+
+        return {
+          ...item,
+          options,
+        };
+      });
+
+      return {
+        ...state,
+        variables,
+      };
+    },
+  })
+  .addMapper({
+    filter: optionsLoaded,
+    mapper: (state, action) => {
+      const { id, options } = action.payload;
+
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
+
+        return {
+          ...item,
+          options,
+        };
+      });
+
+      return {
+        ...state,
+        variables,
+      };
+    },
+  })
+  .addMapper({
+    filter: tagsLoaded,
+    mapper: (state, action) => {
+      const { id, tags } = action.payload;
+
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
+
+        return {
+          ...item,
+          tags,
+        };
+      });
+
+      return {
+        ...state,
+        variables,
+      };
+    },
+  })
+  .addMapper({
+    filter: filtersAdded,
+    mapper: (state, action) => {
+      const { id, filters } = action.payload;
+
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
+
+        return {
+          ...item,
+          filters,
+        };
+      });
+
+      return {
+        ...state,
+        variables,
+      };
+    },
+  })
+  .create();
 
 export default {
   templating: templatingReducer,

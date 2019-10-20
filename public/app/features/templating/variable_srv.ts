@@ -12,7 +12,7 @@ import { DashboardModel } from 'app/features/dashboard/state/DashboardModel';
 import { TimeRange } from '@grafana/data';
 import { CoreEvents } from 'app/types';
 import { store } from 'app/store/store';
-import { createVariable, updateVariable } from './state/actions';
+import { createVariableFromModel, setValue } from './state/actions';
 
 export class VariableSrv {
   dashboard: DashboardModel;
@@ -25,7 +25,9 @@ export class VariableSrv {
     private $injector: auto.IInjectorService,
     private templateSrv: TemplateSrv,
     private timeSrv: TimeSrv
-  ) {}
+  ) {
+    this.createVariableFromModel = this.createVariableFromModel.bind(this);
+  }
 
   init(dashboard: DashboardModel) {
     this.dashboard = dashboard;
@@ -36,7 +38,9 @@ export class VariableSrv {
     );
 
     // create working class models representing variables
-    this.variables = dashboard.templating.list = dashboard.templating.list.map(this.createVariableFromModel.bind(this));
+    this.variables = dashboard.templating.list = dashboard.templating.list.map((model: any, index: number) =>
+      this.createVariableFromModel(index, model)
+    );
     this.templateSrv.init(this.variables, this.timeSrv.timeRange());
 
     // init variables
@@ -104,7 +108,7 @@ export class VariableSrv {
       });
   }
 
-  createVariableFromModel(model: any) {
+  createVariableFromModel(index: number, model: any, addToState = true) {
     // @ts-ignore
     const ctor = variableTypes[model.type].ctor;
     if (!ctor) {
@@ -113,17 +117,19 @@ export class VariableSrv {
       };
     }
 
-    if (model.name) {
-      store.dispatch(updateVariable({ model }));
-    } else {
-      store.dispatch(createVariable({ type: model.type }));
+    if (addToState) {
+      if (model.name) {
+        store.dispatch(createVariableFromModel({ id: index, model: { ...model, id: index } }));
+      }
     }
 
-    const variable = this.$injector.instantiate(ctor, { model: model });
+    const variable: any = this.$injector.instantiate(ctor, { model: model });
+    variable.id = index;
     return variable;
   }
 
   addVariable(variable: any) {
+    variable.id = this.variables.length;
     this.variables.push(variable);
     this.templateSrv.updateIndex();
     this.dashboard.updateSubmenuVisibility();
@@ -209,17 +215,20 @@ export class VariableSrv {
         };
       }
 
+      store.dispatch(setValue(variable, selected));
       return variable.setValue(selected);
     } else {
       const currentOption: any = _.find(variable.options, {
         text: variable.current.text,
       });
       if (currentOption) {
+        store.dispatch(setValue(variable, currentOption));
         return variable.setValue(currentOption);
       } else {
         if (!variable.options.length) {
           return Promise.resolve();
         }
+        store.dispatch(setValue(variable, variable.options[0]));
         return variable.setValue(variable.options[0]);
       }
     }
@@ -315,7 +324,7 @@ export class VariableSrv {
       datasource: options.datasource,
     } as any);
     if (!variable) {
-      variable = this.createVariableFromModel({
+      variable = this.createVariableFromModel(this.variables.length, {
         name: 'Filters',
         type: 'adhoc',
         datasource: options.datasource,
