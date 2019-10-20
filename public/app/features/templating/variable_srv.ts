@@ -12,7 +12,7 @@ import { DashboardModel } from 'app/features/dashboard/state/DashboardModel';
 import { TimeRange } from '@grafana/data';
 import { CoreEvents } from 'app/types';
 import { store } from 'app/store/store';
-import { createVariableFromModel, setValue } from './state/actions';
+import { createVariableFromModel } from './state/actions';
 
 export class VariableSrv {
   dashboard: DashboardModel;
@@ -215,20 +215,17 @@ export class VariableSrv {
         };
       }
 
-      store.dispatch(setValue(variable, selected));
       return variable.setValue(selected);
     } else {
       const currentOption: any = _.find(variable.options, {
         text: variable.current.text,
       });
       if (currentOption) {
-        store.dispatch(setValue(variable, currentOption));
         return variable.setValue(currentOption);
       } else {
         if (!variable.options.length) {
           return Promise.resolve();
         }
-        store.dispatch(setValue(variable, variable.options[0]));
         return variable.setValue(variable.options[0]);
       }
     }

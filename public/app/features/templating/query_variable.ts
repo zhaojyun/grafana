@@ -76,6 +76,7 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
   },
   setValue: async (variable, option) => {
     await store.dispatch(setValue(variable, option));
+    return Promise.resolve(store.getState().templating.variables[variable.id]);
   },
 };
 
@@ -224,21 +225,23 @@ export class QueryVariable implements Variable {
     assignModelProperties(this.model, this, queryVariableHandler.getDefaults());
 
     // remove options
-    if (this.refresh !== 0) {
+    if (this.refresh !== VariableRefresh.never) {
       this.model.options = [];
     }
 
     return this.model;
   }
 
-  setValue(option: any) {
-    return this.variableSrv.setOptionAsCurrent(this, option);
+  async setValue(option: any) {
+    const updatedVariable = await queryVariableHandler.setValue((this as any) as QueryVariableModel, option);
+    assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
+    return this;
   }
 
   async setValueFromUrl(urlValue: any) {
-    const variable: QueryVariableModel = (this as any) as QueryVariableModel;
-    const updatedVariable = await queryVariableHandler.setValueFromUrl(variable, urlValue);
+    const updatedVariable = await queryVariableHandler.setValueFromUrl((this as any) as QueryVariableModel, urlValue);
     assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
+    return this;
   }
 
   getValueForUrl() {
@@ -249,18 +252,16 @@ export class QueryVariable implements Variable {
   }
 
   async updateOptions(searchFilter?: string) {
-    const variable: QueryVariableModel = (this as any) as QueryVariableModel;
-    const updatedVariable = await queryVariableHandler.updateOptions(variable, searchFilter);
+    const updatedVariable = await queryVariableHandler.updateOptions((this as any) as QueryVariableModel, searchFilter);
     assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
 
-    this.variableSrv.validateVariableSelectionState.bind(this.variableSrv, this);
+    this.variableSrv.validateVariableSelectionState(this);
   }
 
   async getValuesForTag(tagKey: string) {
     const datasource = await this.datasourceSrv.get(this.datasource);
     const query = this.tagValuesQuery.replace('$tag', tagKey);
-    const variable: QueryVariableModel = (this as any) as QueryVariableModel;
-    const results = await metricFindQuery(variable, datasource, query);
+    const results = await metricFindQuery((this as any) as QueryVariableModel, datasource, query);
     return _.map(results, value => {
       return value.text;
     });

@@ -41,7 +41,7 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
 
     return Promise.resolve(updatedVariable);
   },
-  setValue: (variable, option) => Promise.resolve(),
+  setValue: (variable, option) => Promise.resolve(variable),
 };
 
 const unescapeDelimiter = (value: string) => {
@@ -57,8 +57,10 @@ export class AdhocVariable implements Variable {
     assignModelProperties(this, model, adhocVariableHandler.getDefaults());
   }
 
-  setValue(option: any) {
-    return adhocVariableHandler.setValue(null, option);
+  async setValue(option: any) {
+    const updatedVariable = await adhocVariableHandler.setValue((this as any) as AdHocVariableModel, option);
+    assignModelProperties(this, updatedVariable, adhocVariableHandler.getDefaults());
+    return this;
   }
 
   getSaveModel() {
@@ -77,6 +79,7 @@ export class AdhocVariable implements Variable {
   async setValueFromUrl(urlValue: string[] | string[]) {
     const updatedVariable = await adhocVariableHandler.setValueFromUrl((this as any) as AdHocVariableModel, urlValue);
     assignModelProperties(this, updatedVariable, adhocVariableHandler.getDefaults());
+    return this;
   }
 
   getValueForUrl() {
