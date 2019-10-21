@@ -16,6 +16,7 @@ import { queryVariableHandler } from '../query_variable';
 import { store } from '../../../store/store';
 import { constantVariableHandler } from '../constant_variable';
 import { customVariableHandler } from '../custom_variable';
+import { datasourceVariableHandler } from '../datasource_variable';
 
 export const getVaribleFromState = <T extends VariableModel = VariableModel>(variable: T) =>
   store.getState().templating.variables[variable.id];
@@ -25,6 +26,7 @@ export const variableHandlers: VariableHandler[] = [
   queryVariableHandler,
   constantVariableHandler,
   customVariableHandler,
+  datasourceVariableHandler,
 ];
 
 export interface TemplatingState {

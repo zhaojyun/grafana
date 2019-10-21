@@ -1,8 +1,9 @@
 import { ScopedVars } from '@grafana/data';
-import { DataSourceApi } from '@grafana/ui';
+import { DataSourceApi, DataSourceSelectItem } from '@grafana/ui';
 
 export interface DataSourceSrv {
   get(name?: string, scopedVars?: ScopedVars): Promise<DataSourceApi>;
+  getMetricSources(options?: { skipVariables?: boolean }): DataSourceSelectItem[];
 }
 
 let singletonInstance: DataSourceSrv;

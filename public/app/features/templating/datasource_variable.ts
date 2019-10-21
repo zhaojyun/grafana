@@ -1,8 +1,94 @@
-import { Variable, containsVariable, assignModelProperties, variableTypes } from './variable';
+import { assignModelProperties, containsVariable, Variable, variableTypes } from './variable';
 import { stringToJsRegex } from '@grafana/data';
-import { VariableSrv } from './variable_srv';
 import { TemplateSrv } from './template_srv';
-import { DatasourceSrv } from '../plugins/datasource_srv';
+import { DataSourceVariableModel, VariableHandler, VariableOption, VariableRefresh } from './state/types';
+import { store } from '../../store/store';
+import { optionsLoaded, setOptionFromUrl, setValue, validateVariableSelectionState } from './state/actions';
+import { getVaribleFromState } from './state/reducer';
+import { getDataSourceSrv } from '@grafana/runtime';
+
+export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel> = {
+  canHandle: variable => variable.type === 'datasource',
+  dependsOn: (variable, variableToTest) => {
+    if (variable.regex) {
+      return containsVariable(variable.regex, variableToTest.name);
+    }
+    return false;
+  },
+  updateOptions: async (variable, searchFilter) => {
+    const options: VariableOption[] = [];
+    const sources = await getDataSourceSrv().getMetricSources({ skipVariables: true });
+    let regex;
+
+    if (variable.regex) {
+      regex = new TemplateSrv().replace(variable.regex, null, 'regex');
+      regex = stringToJsRegex(regex);
+    }
+
+    for (let i = 0; i < sources.length; i++) {
+      const source = sources[i];
+      // must match on type
+      if (source.meta.id !== variable.query) {
+        continue;
+      }
+
+      if (regex && !regex.exec(source.name)) {
+        continue;
+      }
+
+      options.push({ text: source.name, value: source.name, selected: false });
+    }
+
+    if (options.length === 0) {
+      options.push({ text: 'No data sources found', value: '', selected: false });
+    }
+
+    if (variable.includeAll) {
+      options.unshift({ text: 'All', value: '$__all', selected: false });
+    }
+
+    await store.dispatch(optionsLoaded({ id: variable.id, options }));
+    await store.dispatch(validateVariableSelectionState(variable));
+
+    return getVaribleFromState(variable);
+  },
+  getDefaults: () => ({
+    id: null,
+    type: 'datasource',
+    name: '',
+    hide: 0,
+    label: '',
+    current: null,
+    regex: '',
+    options: [],
+    query: '',
+    multi: false,
+    includeAll: false,
+    refresh: VariableRefresh.onDashboardLoad,
+    skipUrlSync: false,
+    initLock: null,
+  }),
+  setValueFromUrl: async (variable, urlValue) => {
+    await store.dispatch(setOptionFromUrl(variable, urlValue));
+    return Promise.resolve(getVaribleFromState(variable));
+  },
+  setValue: async (variable, option) => {
+    await store.dispatch(setValue(variable, option));
+    return Promise.resolve(getVaribleFromState(variable));
+  },
+  getValueForUrl: variable => {
+    if (variable.current.text === 'All') {
+      return 'All';
+    }
+    return variable.current.value;
+  },
+  getSaveModel: (variable, model) => {
+    assignModelProperties(model, variable, datasourceVariableHandler.getDefaults());
+    // don't persist options
+    model.options = [];
+    return model;
+  },
+};
 
 export class DatasourceVariable implements Variable {
   regex: any;
@@ -14,99 +100,42 @@ export class DatasourceVariable implements Variable {
   refresh: any;
   skipUrlSync: boolean;
 
-  defaults: any = {
-    type: 'datasource',
-    name: '',
-    hide: 0,
-    label: '',
-    current: {},
-    regex: '',
-    options: [],
-    query: '',
-    multi: false,
-    includeAll: false,
-    refresh: 1,
-    skipUrlSync: false,
-  };
-
   /** @ngInject */
-  constructor(
-    private model: any,
-    private datasourceSrv: DatasourceSrv,
-    private variableSrv: VariableSrv,
-    private templateSrv: TemplateSrv
-  ) {
-    assignModelProperties(this, model, this.defaults);
+  constructor(private model: any) {
+    assignModelProperties(this, model, datasourceVariableHandler.getDefaults());
     this.refresh = 1;
   }
 
   getSaveModel() {
-    assignModelProperties(this.model, this, this.defaults);
-
-    // don't persist options
-    this.model.options = [];
-    return this.model;
+    return datasourceVariableHandler.getSaveModel((this as any) as DataSourceVariableModel, this.model);
   }
 
-  setValue(option: any) {
-    return this.variableSrv.setOptionAsCurrent(this, option);
+  async setValue(option: any) {
+    const updatedVariable = await datasourceVariableHandler.setValue((this as any) as DataSourceVariableModel, option);
+    assignModelProperties(this, updatedVariable, datasourceVariableHandler.getDefaults());
+    return this;
   }
 
-  updateOptions() {
-    const options = [];
-    const sources = this.datasourceSrv.getMetricSources({ skipVariables: true });
-    let regex;
-
-    if (this.regex) {
-      regex = this.templateSrv.replace(this.regex, null, 'regex');
-      regex = stringToJsRegex(regex);
-    }
-
-    for (let i = 0; i < sources.length; i++) {
-      const source = sources[i];
-      // must match on type
-      if (source.meta.id !== this.query) {
-        continue;
-      }
-
-      if (regex && !regex.exec(source.name)) {
-        continue;
-      }
-
-      options.push({ text: source.name, value: source.name });
-    }
-
-    if (options.length === 0) {
-      options.push({ text: 'No data sources found', value: '' });
-    }
-
-    this.options = options;
-    if (this.includeAll) {
-      this.addAllOption();
-    }
-    return this.variableSrv.validateVariableSelectionState(this);
-  }
-
-  addAllOption() {
-    this.options.unshift({ text: 'All', value: '$__all' });
+  async updateOptions() {
+    const updatedVariable = await datasourceVariableHandler.updateOptions((this as any) as DataSourceVariableModel);
+    assignModelProperties(this, updatedVariable, datasourceVariableHandler.getDefaults());
   }
 
   dependsOn(variable: any) {
-    if (this.regex) {
-      return containsVariable(this.regex, variable.name);
-    }
-    return false;
+    return datasourceVariableHandler.dependsOn((this as any) as DataSourceVariableModel, variable);
   }
 
-  setValueFromUrl(urlValue: string | string[]) {
-    return this.variableSrv.setOptionFromUrl(this, urlValue);
+  async setValueFromUrl(urlValue: string | string[]) {
+    const updatedVariable = await datasourceVariableHandler.setValueFromUrl(
+      (this as any) as DataSourceVariableModel,
+      urlValue
+    );
+    assignModelProperties(this, updatedVariable, datasourceVariableHandler.getDefaults());
+    return this;
   }
 
   getValueForUrl() {
-    if (this.current.text === 'All') {
-      return 'All';
-    }
-    return this.current.value;
+    return datasourceVariableHandler.getValueForUrl((this as any) as DataSourceVariableModel);
   }
 }
 

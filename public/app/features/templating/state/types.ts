@@ -47,7 +47,7 @@ export interface CustomVariableModel extends VariableWithOptions {
   multi: boolean;
 }
 
-export interface DatasourceVariableModel extends VariableWithOptions {
+export interface DataSourceVariableModel extends VariableWithOptions {
   includeAll: boolean;
   multi: boolean;
   refresh: VariableRefresh;
