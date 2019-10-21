@@ -33,6 +33,7 @@ export interface AdHocVariableFilter {
   key: string;
   operator: string;
   value: string;
+  condition: string;
 }
 
 export interface AdHocVariableModel extends VariableModel {
@@ -102,6 +103,9 @@ export interface VariableHandler<T extends VariableModel = VariableModel> {
   setValueFromUrl: (variable: T, urlValue: string | string[]) => Promise<T>;
   setValue: (variable: T, option: VariableOption) => Promise<T>;
   getDefaults: () => T;
+  getValueForUrl: (variable: T) => string | string[];
+  getSaveModel: (variable: T, model: any) => T;
   getOptions: (variable: T, searchFilter?: string) => Promise<VariableOption[]>;
-  getTags: (variable: T, searchFilter?: string) => Promise<string[]>;
+  getTags?: (variable: T, searchFilter?: string) => Promise<string[]>;
+  setFilters?: (variable: T, filters: AdHocVariableFilter[]) => void;
 }

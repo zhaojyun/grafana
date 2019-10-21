@@ -78,6 +78,23 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
     await store.dispatch(setValue(variable, option));
     return Promise.resolve(store.getState().templating.variables[variable.id]);
   },
+  getValueForUrl: variable => {
+    if (variable.current.text === 'All') {
+      return 'All';
+    }
+    return variable.current.value;
+  },
+  getSaveModel: (variable, model) => {
+    // copy back model properties to model
+    assignModelProperties(model, variable, queryVariableHandler.getDefaults());
+
+    // remove options
+    if (variable.refresh !== VariableRefresh.never) {
+      model.options = [];
+    }
+
+    return model;
+  },
 };
 
 const sortVariableValues = (options: any[], sortOrder: number) => {
@@ -221,15 +238,7 @@ export class QueryVariable implements Variable {
   }
 
   getSaveModel() {
-    // copy back model properties to model
-    assignModelProperties(this.model, this, queryVariableHandler.getDefaults());
-
-    // remove options
-    if (this.refresh !== VariableRefresh.never) {
-      this.model.options = [];
-    }
-
-    return this.model;
+    return queryVariableHandler.getSaveModel((this as any) as QueryVariableModel, this.model);
   }
 
   async setValue(option: any) {
@@ -245,10 +254,7 @@ export class QueryVariable implements Variable {
   }
 
   getValueForUrl() {
-    if (this.current.text === 'All') {
-      return 'All';
-    }
-    return this.current.value;
+    return queryVariableHandler.getValueForUrl((this as any) as QueryVariableModel);
   }
 
   async updateOptions(searchFilter?: string) {

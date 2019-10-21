@@ -117,12 +117,14 @@ export const setValue = (variable: VariableModel, option: VariableOption): Thunk
 
 export const updateOptions = (variable: VariableWithOptions, searchFilter?: string): ThunkResult<void> => {
   return async dispatch => {
-    const updateOptionsHandler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
-    if (updateOptionsHandler) {
-      const options = await updateOptionsHandler.getOptions(variable, searchFilter);
-      const tags = await updateOptionsHandler.getTags(variable, searchFilter);
+    const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
+    if (handler) {
+      const options = await handler.getOptions(variable, searchFilter);
       dispatch(optionsLoaded({ id: variable.id, options }));
-      dispatch(tagsLoaded({ id: variable.id, tags }));
+      if (handler.getTags) {
+        const tags = await handler.getTags(variable, searchFilter);
+        dispatch(tagsLoaded({ id: variable.id, tags }));
+      }
     }
 
     return Promise.resolve();

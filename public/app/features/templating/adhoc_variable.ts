@@ -33,6 +33,7 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
         key: values[0],
         operator: values[1],
         value: values[2],
+        condition: '',
       };
     });
 
@@ -42,10 +43,31 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
     return Promise.resolve(updatedVariable);
   },
   setValue: (variable, option) => Promise.resolve(variable),
+  getValueForUrl: variable => {
+    return variable.filters.map(filter => {
+      return [filter.key, filter.operator, filter.value]
+        .map(value => {
+          return escapeDelimiter(value);
+        })
+        .join('|');
+    });
+  },
+  getSaveModel: (variable, model) => {
+    assignModelProperties(model, variable, adhocVariableHandler.getDefaults());
+    return model;
+  },
+  setFilters: (variable, filters) => {
+    store.dispatch(filtersAdded({ id: variable.id, filters }));
+    return store.getState().templating.variables[variable.id];
+  },
 };
 
 const unescapeDelimiter = (value: string) => {
   return value.replace(/__gfp__/g, '|');
+};
+
+const escapeDelimiter = (value: string) => {
+  return value.replace(/\|/g, '__gfp__');
 };
 
 export class AdhocVariable implements Variable {
@@ -64,8 +86,7 @@ export class AdhocVariable implements Variable {
   }
 
   getSaveModel() {
-    assignModelProperties(this.model, this, adhocVariableHandler.getDefaults());
-    return this.model;
+    return adhocVariableHandler.getSaveModel((this as any) as AdHocVariableModel, this.model);
   }
 
   updateOptions() {
@@ -83,21 +104,12 @@ export class AdhocVariable implements Variable {
   }
 
   getValueForUrl() {
-    return this.filters.map(filter => {
-      return [filter.key, filter.operator, filter.value]
-        .map(value => {
-          return this.escapeDelimiter(value);
-        })
-        .join('|');
-    });
-  }
-
-  escapeDelimiter(value: string) {
-    return value.replace(/\|/g, '__gfp__');
+    return adhocVariableHandler.getValueForUrl((this as any) as AdHocVariableModel);
   }
 
   setFilters(filters: any[]) {
-    this.filters = filters;
+    const updatedVariable = adhocVariableHandler.setFilters((this as any) as AdHocVariableModel, filters);
+    assignModelProperties(this, updatedVariable, adhocVariableHandler.getDefaults());
   }
 }
 
