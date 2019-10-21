@@ -14,11 +14,18 @@ import { VariableHandler, VariableModel, VariableOption, VariableWithOptions } f
 import { adhocVariableHandler } from '../adhoc_variable';
 import { queryVariableHandler } from '../query_variable';
 import { store } from '../../../store/store';
+import { constantVariableHandler } from '../constant_variable';
+import { customVariableHandler } from '../custom_variable';
 
 export const getVaribleFromState = <T extends VariableModel = VariableModel>(variable: T) =>
   store.getState().templating.variables[variable.id];
 
-export const variableHandlers: VariableHandler[] = [adhocVariableHandler, queryVariableHandler];
+export const variableHandlers: VariableHandler[] = [
+  adhocVariableHandler,
+  queryVariableHandler,
+  constantVariableHandler,
+  customVariableHandler,
+];
 
 export interface TemplatingState {
   variables: VariableModel[];
@@ -176,7 +183,7 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
           return item;
         }
 
-        const itemWithOptions = (item as unknown) as VariableWithOptions;
+        const itemWithOptions = (item as any) as VariableWithOptions;
         const currentValue = itemWithOptions.current.value;
         const options: VariableOption[] = itemWithOptions.options.map(option => {
           const retVal = {

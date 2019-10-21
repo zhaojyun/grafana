@@ -1,9 +1,8 @@
 import _ from 'lodash';
 import { assignModelProperties, Variable, variableTypes } from './variable';
-import { VariableSrv } from './variable_srv';
 import { CustomVariableModel, VariableHandler, VariableOption } from './state/types';
 import { store } from '../../store/store';
-import { optionsLoaded, setOptionFromUrl, setValue } from './state/actions';
+import { optionsLoaded, setOptionFromUrl, setValue, validateVariableSelectionState } from './state/actions';
 import { getVaribleFromState } from './state/reducer';
 
 export const customVariableHandler: VariableHandler<CustomVariableModel> = {
@@ -21,6 +20,8 @@ export const customVariableHandler: VariableHandler<CustomVariableModel> = {
     }
 
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
+    await store.dispatch(validateVariableSelectionState(variable));
+
     return getVaribleFromState(variable);
   },
   getDefaults: () => ({
@@ -67,7 +68,7 @@ export class CustomVariable implements Variable {
   skipUrlSync: boolean;
 
   /** @ngInject */
-  constructor(private model: any, private variableSrv: VariableSrv) {
+  constructor(private model: any) {
     assignModelProperties(this, model, customVariableHandler.getDefaults());
   }
 
@@ -84,8 +85,6 @@ export class CustomVariable implements Variable {
   async updateOptions() {
     const updatedVariable = await customVariableHandler.updateOptions((this as any) as CustomVariableModel);
     assignModelProperties(this, updatedVariable, customVariableHandler.getDefaults());
-
-    return this.variableSrv.validateVariableSelectionState(this);
   }
 
   dependsOn(variable: any) {

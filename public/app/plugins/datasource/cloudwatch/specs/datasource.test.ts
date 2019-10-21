@@ -3,7 +3,6 @@ import CloudWatchDatasource from '../datasource';
 import { dateMath } from '@grafana/data';
 import { TemplateSrv } from 'app/features/templating/template_srv';
 import { CustomVariable } from 'app/features/templating/all';
-import _ from 'lodash';
 import { CloudWatchQuery } from '../types';
 import { DataSourceInstanceSettings } from '@grafana/ui';
 import { BackendSrv } from 'app/core/services/backend_srv';
@@ -97,16 +96,13 @@ describe('CloudWatchDatasource', () => {
 
     it('should generate the correct query with interval variable', done => {
       templateSrv.init([
-        new CustomVariable(
-          {
-            name: 'period',
-            current: {
-              value: '10m',
-            },
-            multi: false,
+        new CustomVariable({
+          name: 'period',
+          current: {
+            value: '10m',
           },
-          {} as any
-        ),
+          multi: false,
+        }),
       ]);
 
       const query = {
@@ -271,41 +267,32 @@ describe('CloudWatchDatasource', () => {
     let requestParams: { queries: CloudWatchQuery[] };
     beforeEach(() => {
       templateSrv.init([
-        new CustomVariable(
-          {
-            name: 'var1',
-            current: {
-              value: 'var1-foo',
-            },
-            multi: false,
+        new CustomVariable({
+          name: 'var1',
+          current: {
+            value: 'var1-foo',
           },
-          {} as any
-        ),
-        new CustomVariable(
-          {
-            name: 'var2',
-            current: {
-              value: 'var2-foo',
-            },
-            multi: false,
+          multi: false,
+        }),
+        new CustomVariable({
+          name: 'var2',
+          current: {
+            value: 'var2-foo',
           },
-          {} as any
-        ),
-        new CustomVariable(
-          {
-            name: 'var3',
-            options: [
-              { selected: true, value: 'var3-foo' },
-              { selected: false, value: 'var3-bar' },
-              { selected: true, value: 'var3-baz' },
-            ],
-            current: {
-              value: ['var3-foo', 'var3-baz'],
-            },
-            multi: true,
+          multi: false,
+        }),
+        new CustomVariable({
+          name: 'var3',
+          options: [
+            { selected: true, value: 'var3-foo' },
+            { selected: false, value: 'var3-bar' },
+            { selected: true, value: 'var3-baz' },
+          ],
+          current: {
+            value: ['var3-foo', 'var3-baz'],
           },
-          {} as any
-        ),
+          multi: true,
+        }),
       ]);
 
       ctx.backendSrv.datasourceRequest = jest.fn(params => {

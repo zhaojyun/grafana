@@ -2,7 +2,6 @@ import _ from 'lodash';
 import { assignModelProperties, containsVariable, Variable, variableTypes } from './variable';
 import DatasourceSrv from '../plugins/datasource_srv';
 import { TemplateSrv } from './template_srv';
-import { VariableSrv } from './variable_srv';
 import { getTimeSrv } from '../dashboard/services/TimeSrv';
 import {
   QueryVariableModel,
@@ -14,7 +13,7 @@ import {
 } from './state/types';
 import { DataSourceApi, MetricFindValue } from '@grafana/ui';
 import { stringToJsRegex } from '@grafana/data';
-import { optionsLoaded, setOptionFromUrl, setValue, tagsLoaded } from './state/actions';
+import { optionsLoaded, setOptionFromUrl, setValue, tagsLoaded, validateVariableSelectionState } from './state/actions';
 import { store } from '../../store/store';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { getVaribleFromState } from './state/reducer';
@@ -32,10 +31,9 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
     const tags = await getTags(variable, searchFilter);
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
     await store.dispatch(tagsLoaded({ id: variable.id, tags }));
+    await store.dispatch(validateVariableSelectionState(variable));
 
-    const updatedVariable = getVaribleFromState(variable);
-
-    return updatedVariable as QueryVariableModel;
+    return getVaribleFromState(variable) as QueryVariableModel;
   },
   getDefaults: () => ({
     id: null,
@@ -235,7 +233,7 @@ export class QueryVariable implements Variable {
   definition: string;
 
   /** @ngInject */
-  constructor(private model: any, private datasourceSrv: DatasourceSrv, private variableSrv: VariableSrv) {
+  constructor(private model: any, private datasourceSrv: DatasourceSrv) {
     // copy model properties to this instance
     assignModelProperties(this, model, queryVariableHandler.getDefaults());
   }
@@ -263,8 +261,6 @@ export class QueryVariable implements Variable {
   async updateOptions(searchFilter?: string) {
     const updatedVariable = await queryVariableHandler.updateOptions((this as any) as QueryVariableModel, searchFilter);
     assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
-
-    this.variableSrv.validateVariableSelectionState(this);
   }
 
   async getValuesForTag(tagKey: string) {

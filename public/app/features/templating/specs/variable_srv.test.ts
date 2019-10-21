@@ -633,7 +633,7 @@ function setupSetFromUrlTest(ctx: any, model = {}) {
     name: 'test',
     ...model,
   };
-  const variable = new CustomVariable(finalModel, variableSrv);
+  const variable = new CustomVariable(finalModel);
   // We are mocking the setValue here instead of just checking the final variable.current value because there is lots
   // of stuff going when the setValue is called that is hard to mock out.
   variable.setValue = jest.fn();

@@ -281,16 +281,13 @@ describe('StackdriverDataSource', () => {
 function initTemplateSrv(values: any, multi = false) {
   const templateSrv = new TemplateSrv();
   templateSrv.init([
-    new CustomVariable(
-      {
-        name: 'test',
-        current: {
-          value: values,
-        },
-        multi: multi,
+    new CustomVariable({
+      name: 'test',
+      current: {
+        value: values,
       },
-      {} as any
-    ),
+      multi: multi,
+    }),
   ]);
   return templateSrv;
 }

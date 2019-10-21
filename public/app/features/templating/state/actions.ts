@@ -188,6 +188,47 @@ export const setOptionFromUrl = (variable: VariableModel, urlValue: string | str
   };
 };
 
+export const validateVariableSelectionState = (variable: VariableWithOptions): ThunkResult<void> => {
+  return async (dispatch, getState) => {
+    const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
+
+    if (!variable.current) {
+      variable.current = {} as VariableOption;
+    }
+
+    if (Array.isArray(variable.current.value)) {
+      const variableInState = getState().templating.variables[variable.id] as VariableWithOptions;
+      const selectedOptionsInState = variableInState.options.filter(option => option.selected === true);
+      let selected: VariableOption = {} as VariableOption;
+
+      // if none pick first
+      if (selectedOptionsInState.length === 0) {
+        selected = variable.options[0];
+      } else {
+        selected = {
+          value: selectedOptionsInState.map(option => option.value as string),
+          text: selectedOptionsInState.map(option => option.text as string),
+          selected: true,
+        };
+      }
+
+      return await handler.setValue(variable, selected);
+    } else {
+      const currentOption: VariableOption = _.find(variable.options, {
+        text: variable.current.text,
+      });
+      if (currentOption) {
+        return await handler.setValue(variable, currentOption);
+      } else {
+        if (!variable.options.length) {
+          return Promise.resolve(variable);
+        }
+        return await handler.setValue(variable, variable.options[0]);
+      }
+    }
+  };
+};
+
 export const processVariables = (queryParams: any): ThunkResult<void> => {
   return async (dispatch, getState) => {
     const variables = getState().templating.variables;

@@ -9,8 +9,8 @@ import {
   prometheusSpecialRegexEscape,
 } from '../datasource';
 import { dateTime } from '@grafana/data';
-import { DataSourceInstanceSettings, DataQueryResponseData, DataQueryRequest } from '@grafana/ui';
-import { PromOptions, PromQuery, PromContext } from '../types';
+import { DataQueryRequest, DataQueryResponseData, DataSourceInstanceSettings } from '@grafana/ui';
+import { PromContext, PromOptions, PromQuery } from '../types';
 import { TemplateSrv } from 'app/features/templating/template_srv';
 import { TimeSrv } from 'app/features/dashboard/services/TimeSrv';
 import { CustomVariable } from 'app/features/templating/custom_variable';
@@ -326,7 +326,7 @@ describe('PrometheusDatasource', () => {
   describe('When interpolating variables', () => {
     beforeEach(() => {
       ctx.ds = new PrometheusDatasource(instanceSettings, q, ctx.backendSrvMock, ctx.templateSrvMock, ctx.timeSrvMock);
-      ctx.variable = new CustomVariable({}, {} as any);
+      ctx.variable = new CustomVariable({});
     });
 
     describe('and value is a string', () => {
