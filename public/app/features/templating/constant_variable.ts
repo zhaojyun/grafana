@@ -1,5 +1,47 @@
-import { Variable, assignModelProperties, variableTypes } from './variable';
-import { VariableSrv } from './all';
+import { assignModelProperties, Variable, variableTypes } from './variable';
+import { ConstantVariableModel, VariableHandler } from './state/types';
+import { store } from '../../store/store';
+import { optionsLoaded, setOptionFromUrl, setValue } from './state/actions';
+import { getVaribleFromState } from './state/reducer';
+import { queryVariableHandler } from './query_variable';
+
+export const constantVariableHandler: VariableHandler<ConstantVariableModel> = {
+  canHandle: variable => variable.type === 'constant',
+  dependsOn: (variable, variableToTest) => false,
+  updateOptions: async (variable, searchFilter) => {
+    const options = [{ text: variable.query.trim(), value: variable.query.trim(), selected: false }];
+    await store.dispatch(optionsLoaded({ id: variable.id, options }));
+    await constantVariableHandler.setValue(variable, options[0]);
+    return Promise.resolve(getVaribleFromState(variable));
+  },
+  getDefaults: () => ({
+    id: null,
+    type: 'constant',
+    name: '',
+    hide: 2,
+    label: '',
+    query: '',
+    current: null,
+    options: [],
+    skipUrlSync: false,
+    initLock: null,
+  }),
+  setValueFromUrl: async (variable, urlValue) => {
+    await store.dispatch(setOptionFromUrl(variable, urlValue));
+    return Promise.resolve(getVaribleFromState(variable));
+  },
+  setValue: async (variable, option) => {
+    await store.dispatch(setValue(variable, option));
+    return Promise.resolve(getVaribleFromState(variable));
+  },
+  getValueForUrl: variable => {
+    return variable.current.value;
+  },
+  getSaveModel: (variable, model) => {
+    assignModelProperties(model, variable, constantVariableHandler.getDefaults());
+    return model;
+  },
+};
 
 export class ConstantVariable implements Variable {
   query: string;
@@ -7,47 +49,43 @@ export class ConstantVariable implements Variable {
   current: any;
   skipUrlSync: boolean;
 
-  defaults: any = {
-    type: 'constant',
-    name: '',
-    hide: 2,
-    label: '',
-    query: '',
-    current: {},
-    options: [],
-    skipUrlSync: false,
-  };
-
   /** @ngInject */
-  constructor(private model: any, private variableSrv: VariableSrv) {
-    assignModelProperties(this, model, this.defaults);
+  constructor(private model: any) {
+    assignModelProperties(this, model, constantVariableHandler.getDefaults());
   }
 
   getSaveModel() {
-    assignModelProperties(this.model, this, this.defaults);
-    return this.model;
+    return constantVariableHandler.getSaveModel((this as any) as ConstantVariableModel, this.model);
   }
 
-  setValue(option: any) {
-    this.variableSrv.setOptionAsCurrent(this, option);
+  async setValue(option: any) {
+    const updatedVariable = await constantVariableHandler.setValue((this as any) as ConstantVariableModel, option);
+    assignModelProperties(this, updatedVariable, constantVariableHandler.getDefaults());
+    return this;
   }
 
-  updateOptions() {
-    this.options = [{ text: this.query.trim(), value: this.query.trim() }];
-    this.setValue(this.options[0]);
+  async updateOptions() {
+    const updatedVariable = await constantVariableHandler.updateOptions((this as any) as ConstantVariableModel);
+    assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
+
     return Promise.resolve();
   }
 
   dependsOn(variable: any) {
-    return false;
+    return constantVariableHandler.dependsOn((this as any) as ConstantVariableModel, variable);
   }
 
-  setValueFromUrl(urlValue: string) {
-    return this.variableSrv.setOptionFromUrl(this, urlValue);
+  async setValueFromUrl(urlValue: string) {
+    const updatedVariable = await constantVariableHandler.setValueFromUrl(
+      (this as any) as ConstantVariableModel,
+      urlValue
+    );
+    assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
+    return this;
   }
 
   getValueForUrl() {
-    return this.current.value;
+    return constantVariableHandler.getValueForUrl((this as any) as ConstantVariableModel);
   }
 }
 

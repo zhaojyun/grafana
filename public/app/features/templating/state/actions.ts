@@ -118,13 +118,9 @@ export const setValue = (variable: VariableModel, option: VariableOption): Thunk
 export const updateOptions = (variable: VariableWithOptions, searchFilter?: string): ThunkResult<void> => {
   return async dispatch => {
     const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
+
     if (handler) {
-      const options = await handler.getOptions(variable, searchFilter);
-      dispatch(optionsLoaded({ id: variable.id, options }));
-      if (handler.getTags) {
-        const tags = await handler.getTags(variable, searchFilter);
-        dispatch(tagsLoaded({ id: variable.id, tags }));
-      }
+      await handler.updateOptions(variable, searchFilter);
     }
 
     return Promise.resolve();
@@ -178,18 +174,16 @@ export const processOptions = (id: number, urlValue: string | string[]): ThunkRe
   };
 };
 
-export const setOptionFromUrl = (variable: QueryVariableModel, urlValue: string | string[]): ThunkResult<void> => {
+export const setOptionFromUrl = (variable: VariableModel, urlValue: string | string[]): ThunkResult<void> => {
   return async dispatch => {
-    if (!variable.refresh) {
-      return;
-    }
-
     const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
     if (!handler) {
       return;
     }
 
-    await handler.updateOptions(variable);
+    if ((variable as QueryVariableModel).refresh) {
+      await handler.updateOptions(variable);
+    }
     await dispatch(processOptions(variable.id, urlValue));
   };
 };

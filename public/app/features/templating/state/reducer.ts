@@ -13,6 +13,10 @@ import {
 import { VariableHandler, VariableModel, VariableOption, VariableWithOptions } from './types';
 import { adhocVariableHandler } from '../adhoc_variable';
 import { queryVariableHandler } from '../query_variable';
+import { store } from '../../../store/store';
+
+export const getVaribleFromState = <T extends VariableModel = VariableModel>(variable: T) =>
+  store.getState().templating.variables[variable.id];
 
 export const variableHandlers: VariableHandler[] = [adhocVariableHandler, queryVariableHandler];
 

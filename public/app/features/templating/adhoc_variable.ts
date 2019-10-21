@@ -2,6 +2,7 @@ import { assignModelProperties, Variable, variableTypes } from './variable';
 import { AdHocVariableModel, VariableHandler } from './state/types';
 import { filtersAdded } from './state/actions';
 import { store } from '../../store/store';
+import { getVaribleFromState } from './state/reducer';
 
 export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
   canHandle: variable => variable.type === 'adhoc',
@@ -18,8 +19,6 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
     skipUrlSync: false,
     initLock: null,
   }),
-  getOptions: (variable, searchFilter) => Promise.resolve([]),
-  getTags: (variable, searchFilter) => Promise.resolve([]),
   setValueFromUrl: (variable, urlValue) => {
     if (!Array.isArray(urlValue)) {
       urlValue = [urlValue];
@@ -38,7 +37,7 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
     });
 
     store.dispatch(filtersAdded({ id: variable.id, filters }));
-    const updatedVariable = store.getState().templating.variables[variable.id];
+    const updatedVariable = getVaribleFromState(variable);
 
     return Promise.resolve(updatedVariable);
   },
@@ -58,7 +57,7 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
   },
   setFilters: (variable, filters) => {
     store.dispatch(filtersAdded({ id: variable.id, filters }));
-    return store.getState().templating.variables[variable.id];
+    return getVaribleFromState(variable);
   },
 };
 

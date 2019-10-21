@@ -17,6 +17,7 @@ import { stringToJsRegex } from '@grafana/data';
 import { optionsLoaded, setOptionFromUrl, setValue, tagsLoaded } from './state/actions';
 import { store } from '../../store/store';
 import { getDataSourceSrv } from '@grafana/runtime';
+import { getVaribleFromState } from './state/reducer';
 
 function getNoneOption(): VariableOption {
   return { text: 'None', value: '', isNone: true, selected: false };
@@ -27,12 +28,12 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
   dependsOn: (variable, variableToTest) =>
     containsVariable(variable.query, variable.datasource, variable.regex, variableToTest.name),
   updateOptions: async (variable, searchFilter) => {
-    const options = await queryVariableHandler.getOptions(variable, searchFilter);
-    const tags = await queryVariableHandler.getTags(variable, searchFilter);
+    const options = await getOptions(variable, searchFilter);
+    const tags = await getTags(variable, searchFilter);
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
     await store.dispatch(tagsLoaded({ id: variable.id, tags }));
 
-    const updatedVariable = store.getState().templating.variables[variable.id];
+    const updatedVariable = getVaribleFromState(variable);
 
     return updatedVariable as QueryVariableModel;
   },
@@ -60,23 +61,13 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
     tagValuesQuery: '',
     initLock: null,
   }),
-  getOptions: async (variable, searchFilter) => {
-    const datasource = await getDataSourceSrv().get(variable.datasource);
-    const options = await updateOptionsFromMetricFindQuery(variable, datasource, searchFilter);
-    return options;
-  },
-  getTags: async (variable, searchFilter) => {
-    const datasource = await getDataSourceSrv().get(variable.datasource);
-    const tags = await updateTags(variable, datasource, searchFilter);
-    return tags;
-  },
   setValueFromUrl: async (variable, urlValue) => {
     await store.dispatch(setOptionFromUrl(variable, urlValue));
-    return Promise.resolve(store.getState().templating.variables[variable.id]);
+    return Promise.resolve(getVaribleFromState(variable));
   },
   setValue: async (variable, option) => {
     await store.dispatch(setValue(variable, option));
-    return Promise.resolve(store.getState().templating.variables[variable.id]);
+    return Promise.resolve(getVaribleFromState(variable));
   },
   getValueForUrl: variable => {
     if (variable.current.text === 'All') {
@@ -95,6 +86,18 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
 
     return model;
   },
+};
+
+const getOptions = async (variable: QueryVariableModel, searchFilter?: string) => {
+  const datasource = await getDataSourceSrv().get(variable.datasource);
+  const options = await updateOptionsFromMetricFindQuery(variable, datasource, searchFilter);
+  return options;
+};
+
+const getTags = async (variable: QueryVariableModel, searchFilter?: string) => {
+  const datasource = await getDataSourceSrv().get(variable.datasource);
+  const tags = await updateTags(variable, datasource, searchFilter);
+  return tags;
 };
 
 const sortVariableValues = (options: any[], sortOrder: number) => {

@@ -105,7 +105,7 @@ export interface VariableHandler<T extends VariableModel = VariableModel> {
   getDefaults: () => T;
   getValueForUrl: (variable: T) => string | string[];
   getSaveModel: (variable: T, model: any) => T;
-  getOptions: (variable: T, searchFilter?: string) => Promise<VariableOption[]>;
-  getTags?: (variable: T, searchFilter?: string) => Promise<string[]>;
+  // getOptions: (variable: T, searchFilter?: string) => Promise<VariableOption[]>;
+  // getTags?: (variable: T, searchFilter?: string) => Promise<string[]>;
   setFilters?: (variable: T, filters: AdHocVariableFilter[]) => void;
 }
