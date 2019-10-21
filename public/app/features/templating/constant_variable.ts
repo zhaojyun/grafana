@@ -3,7 +3,6 @@ import { ConstantVariableModel, VariableHandler } from './state/types';
 import { store } from '../../store/store';
 import { optionsLoaded, setOptionFromUrl, setValue } from './state/actions';
 import { getVaribleFromState } from './state/reducer';
-import { queryVariableHandler } from './query_variable';
 
 export const constantVariableHandler: VariableHandler<ConstantVariableModel> = {
   canHandle: variable => variable.type === 'constant',
@@ -66,7 +65,7 @@ export class ConstantVariable implements Variable {
 
   async updateOptions() {
     const updatedVariable = await constantVariableHandler.updateOptions((this as any) as ConstantVariableModel);
-    assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
+    assignModelProperties(this, updatedVariable, constantVariableHandler.getDefaults());
 
     return Promise.resolve();
   }
@@ -80,7 +79,7 @@ export class ConstantVariable implements Variable {
       (this as any) as ConstantVariableModel,
       urlValue
     );
-    assignModelProperties(this, updatedVariable, queryVariableHandler.getDefaults());
+    assignModelProperties(this, updatedVariable, constantVariableHandler.getDefaults());
     return this;
   }
 
