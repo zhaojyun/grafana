@@ -5,10 +5,12 @@ import { dateMath, ScopedVars } from '@grafana/data';
 import kbn from 'app/core/utils/kbn';
 import { CloudWatchQuery } from './types';
 import { displayThrottlingError } from './errors';
-import { DataSourceApi, DataQueryRequest, DataSourceInstanceSettings } from '@grafana/ui';
+import { DataSourceApi, DataQueryRequest, DataSourceInstanceSettings, DataSourceJsonData } from '@grafana/ui';
 import { BackendSrv } from 'app/core/services/backend_srv';
 import { TemplateSrv } from 'app/features/templating/template_srv';
 import { TimeSrv } from 'app/features/dashboard/services/TimeSrv';
+
+export interface Options extends DataSourceJsonData {}
 
 export default class CloudWatchDatasource extends DataSourceApi<CloudWatchQuery> {
   type: any;
@@ -93,6 +95,10 @@ export default class CloudWatchDatasource extends DataSourceApi<CloudWatchQuery>
     };
 
     return this.performTimeSeriesQuery(request);
+  }
+
+  get variables() {
+    return this.templateSrv.variables.map(v => `$${v.name}`);
   }
 
   getPeriod(target: any, options: any, now?: number) {
@@ -180,6 +186,7 @@ export default class CloudWatchDatasource extends DataSourceApi<CloudWatchQuery>
       return {
         text: v[0],
         value: v[1],
+        label: v[1],
       };
     });
   }
