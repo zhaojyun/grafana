@@ -1,23 +1,19 @@
 // Libaries
 import _ from 'lodash';
-
 // Constants
-import { DEFAULT_ANNOTATION_COLOR } from '@grafana/ui';
-import { GRID_COLUMN_COUNT, REPEAT_DIR_VERTICAL, GRID_CELL_HEIGHT, GRID_CELL_VMARGIN } from 'app/core/constants';
-
+import { DEFAULT_ANNOTATION_COLOR, PanelEvents } from '@grafana/ui';
+import { GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, REPEAT_DIR_VERTICAL } from 'app/core/constants';
 // Utils & Services
 import { Emitter } from 'app/core/utils/emitter';
 import { contextSrv } from 'app/core/services/context_srv';
 import sortByKeys from 'app/core/utils/sort_by_keys';
-
 // Types
-import { PanelModel, GridPos, panelAdded, panelRemoved } from './PanelModel';
+import { GridPos, panelAdded, PanelModel, panelRemoved } from './PanelModel';
 import { DashboardMigrator } from './DashboardMigrator';
-import { TimeRange, TimeZone, AppEvent } from '@grafana/data';
+import { AppEvent, dateTime, DateTimeInput, isDateTime, TimeRange, TimeZone, toUtc } from '@grafana/data';
 import { UrlQueryValue } from '@grafana/runtime';
-import { PanelEvents } from '@grafana/ui';
-import { KIOSK_MODE_TV, DashboardMeta, CoreEvents } from 'app/types';
-import { toUtc, DateTimeInput, dateTime, isDateTime } from '@grafana/data';
+import { CoreEvents, DashboardMeta, KIOSK_MODE_TV } from 'app/types';
+import { getVariableHandler } from '../../templating/state/reducer';
 
 export interface CloneOptions {
   saveVariables?: boolean;
@@ -172,9 +168,14 @@ export class DashboardModel {
 
     // get variable save models
     copy.templating = {
-      list: _.map(this.templating.list, (variable: any) =>
-        variable.getSaveModel ? variable.getSaveModel() : variable
-      ),
+      list: _.map(this.templating.list, (variable: any) => {
+        const handler = getVariableHandler(variable.type);
+        if (handler) {
+          return handler.getSaveModel(variable, variable.model || { type: variable.type });
+        }
+
+        return variable;
+      }),
     };
 
     if (!defaults.saveVariables) {
@@ -223,7 +224,11 @@ export class DashboardModel {
     this.events.emit(CoreEvents.timeRangeUpdated, timeRange);
   }
 
-  startRefresh() {
+  startRefresh(variables?: any[]) {
+    if (variables) {
+      this.templating.list = variables;
+    }
+
     this.events.emit(PanelEvents.refresh);
 
     for (const panel of this.panels) {
@@ -910,7 +915,11 @@ export class DashboardModel {
     });
   }
 
-  templateVariableValueUpdated() {
+  templateVariableValueUpdated(variables?: any[]) {
+    if (variables) {
+      this.templating.list = variables;
+    }
+
     this.processRepeats();
     this.events.emit(CoreEvents.templateVariableValueUpdated);
   }

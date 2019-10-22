@@ -12,6 +12,7 @@ import {
 import { ThunkResult } from '../../../types';
 import { getVariableHandler } from './reducer';
 import { Graph } from '../../../core/utils/dag';
+import { DashboardModel } from '../../dashboard/state';
 
 export interface CreateVariableFromModel<T extends VariableModel> {
   id: number;
@@ -83,7 +84,7 @@ export const setValue = (variable: VariableModel, option: VariableOption): Thunk
   return async dispatch => {
     dispatch(setOptionAsCurrent({ id: variable.id, option }));
     dispatch(selectOptionsForCurrentValue({ id: variable.id }));
-    dispatch(variableUpdated(variable));
+    dispatch(variableUpdated(variable, true));
   };
 };
 
@@ -110,10 +111,15 @@ export const createGraph = (variables: VariableModel[]) => {
   return g;
 };
 
-export const variableUpdated = (variable: VariableModel, emitChangeEvents?: boolean): ThunkResult<void> => {
+export const variableUpdated = (variable: VariableModel, emitchangeevents?: boolean): ThunkResult<void> => {
   return async (dispatch, getState) => {
     // if there is a variable lock ignore cascading update because we are in a boot up scenario
     if (variable.initLock) {
+      return;
+    }
+
+    const dashboard = getState().dashboard.model as DashboardModel;
+    if (!dashboard) {
       return;
     }
 
@@ -132,12 +138,11 @@ export const variableUpdated = (variable: VariableModel, emitChangeEvents?: bool
     }
 
     return Promise.all(promises).then(() => {
-      console.log('TODO: Implement this');
       // TODO: figure out the best way to implement the rows below
-      // if (emitChangeEvents) {
-      //   this.dashboard.templateVariableValueUpdated();
-      //   this.dashboard.startRefresh();
-      // }
+      if (emitchangeevents) {
+        dashboard.templateVariableValueUpdated(getState().templating.variables);
+        dashboard.startRefresh(getState().templating.variables);
+      }
     });
   };
 };

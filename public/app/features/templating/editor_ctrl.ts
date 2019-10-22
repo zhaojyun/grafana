@@ -128,10 +128,16 @@ export class VariableEditorCtrl {
       }
     };
 
-    $scope.runQuery = () => {
-      store.dispatch(updateVariable({ id: $scope.current.id, model: $scope.current }));
+    $scope.runQuery = async () => {
+      await store.dispatch(updateVariable({ id: $scope.current.id, model: $scope.current }));
+      if ($scope.current.id === -1) {
+        // Variable has been added to state but isn't aware of it yet
+        $scope.current.id = store.getState().templating.variables.length - 1;
+      }
       $scope.optionsLimit = 20;
-      return variableSrv.updateOptions($scope.current).catch((err: { data: { message: any }; message: string }) => {
+      try {
+        return await variableSrv.updateOptions($scope.current);
+      } catch (err) {
         if (err.data && err.data.message) {
           err.message = err.data.message;
         }
@@ -139,7 +145,7 @@ export class VariableEditorCtrl {
           'Templating',
           'Template variables could not be initialized: ' + err.message,
         ]);
-      });
+      }
     };
 
     $scope.onQueryChange = (query: any, definition: any) => {

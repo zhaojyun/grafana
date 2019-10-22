@@ -76,7 +76,7 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
   },
   getSaveModel: (variable, model) => {
     // copy back model properties to model
-    assignModelProperties(model, variable, queryVariableHandler.getDefaults());
+    assignModelProperties(model, variable, queryVariableHandler.getDefaults(), ['id', 'initLock']);
 
     // remove options
     if (variable.refresh !== VariableRefresh.never) {

@@ -84,7 +84,7 @@ export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel>
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, datasourceVariableHandler.getDefaults());
+    assignModelProperties(model, variable, datasourceVariableHandler.getDefaults(), ['id', 'initLock']);
     // don't persist options
     model.options = [];
     return model;

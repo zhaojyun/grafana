@@ -1,6 +1,10 @@
-export function assignModelProperties(target: any, source: any, defaults: any, removeDefaults?: undefined) {
+export function assignModelProperties(target: any, source: any, defaults: any, removeKeys?: string[]) {
   for (const key in defaults) {
     if (!defaults.hasOwnProperty(key)) {
+      continue;
+    }
+
+    if (removeKeys && removeKeys.indexOf(key) !== -1) {
       continue;
     }
 

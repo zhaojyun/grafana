@@ -34,7 +34,7 @@ const variableHandlers: VariableHandler[] = [
 ];
 
 export const getVariableHandler = (type: VariableType) => {
-  const handler = variableHandlers.filter(handler => handler.canHandle)[0];
+  const handler = variableHandlers.filter(handler => handler.canHandle({ type } as VariableModel))[0];
   if (!handler) {
     throw new Error(`Couldn't find variable handler for type:${type}`);
   }
@@ -42,6 +42,10 @@ export const getVariableHandler = (type: VariableType) => {
 };
 
 export const removeAngularPropsFromObject = (value: any) => {
+  if (!value) {
+    return value;
+  }
+
   const { $$hashKey, ...rest } = value;
   if (rest.hasOwnProperty('options')) {
     rest.options = rest.options.map(removeAngularPropsFromObject);
@@ -99,6 +103,22 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
     filter: updateVariable,
     mapper: (state, action) => {
       const { id, model } = action.payload;
+
+      // Variable not stored in state yet
+      if (id === -1) {
+        const handler = getVariableHandler(model.type);
+        const defaults = {
+          ...handler.getDefaults(),
+          ...removeAngularPropsFromObject(model),
+          id: state.variables.length,
+        };
+
+        return {
+          ...state,
+          variables: [...state.variables, defaults],
+        };
+      }
+
       const variables = state.variables.map((item, index) => {
         if (index !== id) {
           return item;

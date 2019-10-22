@@ -40,7 +40,7 @@ export const textBoxVariableHandler: VariableHandler<TextBoxVariableModel> = {
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, textBoxVariableHandler.getDefaults());
+    assignModelProperties(model, variable, textBoxVariableHandler.getDefaults(), ['id', 'initLock']);
     return model;
   },
 };

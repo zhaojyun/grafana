@@ -54,7 +54,7 @@ export const customVariableHandler: VariableHandler<CustomVariableModel> = {
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, customVariableHandler.getDefaults());
+    assignModelProperties(model, variable, customVariableHandler.getDefaults(), ['id', 'initLock']);
     return model;
   },
 };

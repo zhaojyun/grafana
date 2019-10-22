@@ -65,7 +65,7 @@ export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, intervalVariableHandler.getDefaults());
+    assignModelProperties(model, variable, intervalVariableHandler.getDefaults(), ['id', 'initLock']);
     return model;
   },
 };

@@ -37,7 +37,7 @@ export const constantVariableHandler: VariableHandler<ConstantVariableModel> = {
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, constantVariableHandler.getDefaults());
+    assignModelProperties(model, variable, constantVariableHandler.getDefaults(), ['id', 'initLock']);
     return model;
   },
 };
