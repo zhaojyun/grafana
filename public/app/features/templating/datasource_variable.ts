@@ -120,6 +120,7 @@ export class DatasourceVariable implements Variable {
   async updateOptions() {
     const updatedVariable = await datasourceVariableHandler.updateOptions((this as any) as DataSourceVariableModel);
     assignModelProperties(this, updatedVariable, datasourceVariableHandler.getDefaults());
+    return this;
   }
 
   dependsOn(variable: any) {

@@ -18,6 +18,7 @@ import { constantVariableHandler } from '../constant_variable';
 import { customVariableHandler } from '../custom_variable';
 import { datasourceVariableHandler } from '../datasource_variable';
 import { intervalVariableHandler } from '../interval_variable';
+import { textBoxVariableHandler } from '../TextBoxVariable';
 
 export const getVaribleFromState = <T extends VariableModel = VariableModel>(variable: T) =>
   store.getState().templating.variables[variable.id];
@@ -29,6 +30,7 @@ export const variableHandlers: VariableHandler[] = [
   customVariableHandler,
   datasourceVariableHandler,
   intervalVariableHandler,
+  textBoxVariableHandler,
 ];
 
 export interface TemplatingState {

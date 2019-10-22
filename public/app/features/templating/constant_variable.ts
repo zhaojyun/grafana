@@ -66,8 +66,7 @@ export class ConstantVariable implements Variable {
   async updateOptions() {
     const updatedVariable = await constantVariableHandler.updateOptions((this as any) as ConstantVariableModel);
     assignModelProperties(this, updatedVariable, constantVariableHandler.getDefaults());
-
-    return Promise.resolve();
+    return this;
   }
 
   dependsOn(variable: any) {

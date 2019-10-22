@@ -85,6 +85,7 @@ export class CustomVariable implements Variable {
   async updateOptions() {
     const updatedVariable = await customVariableHandler.updateOptions((this as any) as CustomVariableModel);
     assignModelProperties(this, updatedVariable, customVariableHandler.getDefaults());
+    return this;
   }
 
   dependsOn(variable: any) {
