@@ -10,7 +10,7 @@ import {
   VariableWithOptions,
 } from './types';
 import { ThunkResult } from '../../../types';
-import { variableHandlers } from './reducer';
+import { getVariableHandler } from './reducer';
 import { Graph } from '../../../core/utils/dag';
 
 export interface CreateVariableFromModel<T extends VariableModel> {
@@ -100,11 +100,7 @@ export const createGraph = (variables: VariableModel[]) => {
         return;
       }
 
-      const handler = variableHandlers.filter(handler => handler.canHandle(v1))[0];
-      if (!handler) {
-        return;
-      }
-
+      const handler = getVariableHandler(v1.type);
       if (handler.dependsOn(v1, v2)) {
         g.link(v1.name, v2.name);
       }
@@ -130,10 +126,7 @@ export const variableUpdated = (variable: VariableModel, emitChangeEvents?: bool
         if (!variable) {
           return Promise.resolve();
         }
-        const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
-        if (!handler) {
-          return Promise.resolve();
-        }
+        const handler = getVariableHandler(variable.type);
         return handler.updateOptions(variable);
       });
     }
@@ -151,23 +144,15 @@ export const variableUpdated = (variable: VariableModel, emitChangeEvents?: bool
 
 export const updateOptions = (variable: VariableWithOptions, searchFilter?: string): ThunkResult<void> => {
   return async dispatch => {
-    const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
-
-    if (handler) {
-      await handler.updateOptions(variable, searchFilter);
-    }
-
-    return Promise.resolve();
+    const handler = getVariableHandler(variable.type);
+    return await handler.updateOptions(variable, searchFilter);
   };
 };
 
 export const processOptions = (id: number, urlValue: string | string[]): ThunkResult<void> => {
   return async (dispatch, getState) => {
     const variable = getState().templating.variables[id] as QueryVariableModel;
-    const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
-    if (!handler) {
-      return;
-    }
+    const handler = getVariableHandler(variable.type);
 
     // Simple case. Value in url matches existing options text or value.
     let option: any = _.find(variable.options, op => {
@@ -210,11 +195,7 @@ export const processOptions = (id: number, urlValue: string | string[]): ThunkRe
 
 export const setOptionFromUrl = (variable: VariableModel, urlValue: string | string[]): ThunkResult<void> => {
   return async dispatch => {
-    const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
-    if (!handler) {
-      return;
-    }
-
+    const handler = getVariableHandler(variable.type);
     if ((variable as QueryVariableModel).refresh) {
       await handler.updateOptions(variable);
     }
@@ -224,7 +205,7 @@ export const setOptionFromUrl = (variable: VariableModel, urlValue: string | str
 
 export const validateVariableSelectionState = (variable: VariableWithOptions): ThunkResult<void> => {
   return async (dispatch, getState) => {
-    const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
+    const handler = getVariableHandler(variable.type);
 
     if (!variable.current) {
       variable.current = {} as VariableOption;
@@ -269,11 +250,7 @@ export const processVariables = (queryParams: any): ThunkResult<void> => {
     for (let index = 0; index < variables.length; index++) {
       const dependencies = [];
       const variable = variables[index] as QueryVariableModel;
-      const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
-
-      if (!handler) {
-        continue;
-      }
+      const handler = getVariableHandler(variable.type);
 
       variable.initLock = new Promise(() => {});
 

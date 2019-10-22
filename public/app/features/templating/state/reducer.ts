@@ -10,7 +10,7 @@ import {
   tagsLoaded,
   updateVariable,
 } from './actions';
-import { VariableHandler, VariableModel, VariableOption, VariableWithOptions } from './types';
+import { VariableHandler, VariableModel, VariableOption, VariableType, VariableWithOptions } from './types';
 import { adhocVariableHandler } from '../adhoc_variable';
 import { queryVariableHandler } from '../query_variable';
 import { store } from '../../../store/store';
@@ -23,7 +23,7 @@ import { textBoxVariableHandler } from '../TextBoxVariable';
 export const getVaribleFromState = <T extends VariableModel = VariableModel>(variable: T) =>
   store.getState().templating.variables[variable.id];
 
-export const variableHandlers: VariableHandler[] = [
+const variableHandlers: VariableHandler[] = [
   adhocVariableHandler,
   queryVariableHandler,
   constantVariableHandler,
@@ -32,6 +32,14 @@ export const variableHandlers: VariableHandler[] = [
   intervalVariableHandler,
   textBoxVariableHandler,
 ];
+
+export const getVariableHandler = (type: VariableType) => {
+  const handler = variableHandlers.filter(handler => handler.canHandle)[0];
+  if (!handler) {
+    throw new Error(`Couldn't find variable handler for type:${type}`);
+  }
+  return handler;
+};
 
 export const removeAngularPropsFromObject = (value: any) => {
   const { $$hashKey, ...rest } = value;
@@ -60,11 +68,7 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
     filter: createVariableFromModel,
     mapper: (state, action) => {
       const { id, model } = action.payload;
-      const handler = variableHandlers.filter(handler => handler.canHandle(model))[0];
-      if (!handler) {
-        return state;
-      }
-
+      const handler = getVariableHandler(model.type);
       const defaults = { ...handler.getDefaults(), ...model, id };
 
       if (id === state.variables.length) {
@@ -116,11 +120,7 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
     filter: changeVariableType,
     mapper: (state, action) => {
       const { id, changeToType } = action.payload;
-      const handler = variableHandlers.filter(handler => handler.canHandle({ type: changeToType } as VariableModel))[0];
-      if (!handler) {
-        return state;
-      }
-
+      const handler = getVariableHandler(changeToType);
       const defaults = { ...handler.getDefaults(), id };
 
       if (id === state.variables.length) {
