@@ -7,7 +7,7 @@ import { VariableSrv } from './all';
 import { TemplateSrv } from './template_srv';
 import { AppEvents } from '@grafana/data';
 import { store } from '../../store/store';
-import { changeVariableType, createVariableFromModel, duplicateVariable } from './state/actions';
+import { changeVariableType, duplicateVariable, updateVariable } from './state/actions';
 
 export class VariableEditorCtrl {
   /** @ngInject */
@@ -167,7 +167,7 @@ export class VariableEditorCtrl {
 
     $scope.update = () => {
       if ($scope.isValid()) {
-        store.dispatch(createVariableFromModel({ id: $scope.current.id, model: $scope.current }));
+        store.dispatch(updateVariable({ id: $scope.current.id, model: $scope.current }));
 
         $scope.runQuery().then(() => {
           $scope.reset();

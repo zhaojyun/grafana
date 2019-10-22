@@ -1,7 +1,11 @@
 import _ from 'lodash';
+import { DataSourceApi, MetricFindValue } from '@grafana/ui';
+import { stringToJsRegex } from '@grafana/data';
+import { getDataSourceSrv } from '@grafana/runtime';
+
 import { assignModelProperties, containsVariable, Variable, variableTypes } from './variable';
 import DatasourceSrv from '../plugins/datasource_srv';
-import { TemplateSrv } from './template_srv';
+import { default as templateSrv } from './template_srv';
 import { getTimeSrv } from '../dashboard/services/TimeSrv';
 import {
   QueryVariableModel,
@@ -11,11 +15,8 @@ import {
   VariableRefresh,
   VariableSort,
 } from './state/types';
-import { DataSourceApi, MetricFindValue } from '@grafana/ui';
-import { stringToJsRegex } from '@grafana/data';
 import { optionsLoaded, setOptionFromUrl, setValue, tagsLoaded, validateVariableSelectionState } from './state/actions';
 import { store } from '../../store/store';
-import { getDataSourceSrv } from '@grafana/runtime';
 import { getVaribleFromState } from './state/reducer';
 
 function getNoneOption(): VariableOption {
@@ -135,7 +136,7 @@ export const metricNamesToVariableValues = (variable: QueryVariableModel, metric
   let options: VariableOption[] = [];
 
   if (variable.regex) {
-    regex = stringToJsRegex(new TemplateSrv().replace(variable.regex, {}, 'regex'));
+    regex = stringToJsRegex(templateSrv.replace(variable.regex, {}, 'regex'));
   }
   for (i = 0; i < metricNames.length; i++) {
     const item = metricNames[i];

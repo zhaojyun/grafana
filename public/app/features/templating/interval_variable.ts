@@ -18,7 +18,18 @@ export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
       return { text: text.trim(), value: text.trim(), selected: false };
     });
 
-    updateAutoValue(variable);
+    if (variable.auto) {
+      // add auto option if missing
+      if (options.length && options[0].text !== 'auto') {
+        options.unshift({
+          text: 'auto',
+          value: '$__auto_interval_' + variable.name,
+          selected: false,
+        });
+      }
+
+      setAutoIntervalVariable(variable);
+    }
 
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
     await store.dispatch(validateVariableSelectionState(variable));
@@ -42,12 +53,11 @@ export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
     initLock: null,
   }),
   setValueFromUrl: async (variable, urlValue) => {
-    updateAutoValue(variable);
     await store.dispatch(setOptionFromUrl(variable, urlValue));
     return Promise.resolve(getVaribleFromState(variable));
   },
   setValue: async (variable, option) => {
-    updateAutoValue(variable);
+    setAutoIntervalVariable(variable);
     await store.dispatch(setValue(variable, option));
     return Promise.resolve(getVaribleFromState(variable));
   },
@@ -60,18 +70,9 @@ export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
   },
 };
 
-const updateAutoValue = (variable: IntervalVariableModel) => {
+const setAutoIntervalVariable = (variable: IntervalVariableModel) => {
   if (!variable.auto) {
     return;
-  }
-
-  // add auto option if missing
-  if (variable.options.length && variable.options[0].text !== 'auto') {
-    variable.options.unshift({
-      text: 'auto',
-      value: '$__auto_interval_' + variable.name,
-      selected: false,
-    });
   }
 
   const res = kbn.calculateInterval(getTimeSrv().timeRange(), variable.auto_count, variable.auto_min);
@@ -110,6 +111,7 @@ export class IntervalVariable implements Variable {
   async updateOptions() {
     const updatedVariable = await intervalVariableHandler.updateOptions((this as any) as IntervalVariableModel);
     assignModelProperties(this, updatedVariable, intervalVariableHandler.getDefaults());
+    return this;
   }
 
   dependsOn(variable: any) {

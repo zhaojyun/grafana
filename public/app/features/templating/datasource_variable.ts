@@ -1,11 +1,12 @@
-import { assignModelProperties, containsVariable, Variable, variableTypes } from './variable';
 import { stringToJsRegex } from '@grafana/data';
-import { TemplateSrv } from './template_srv';
+import { getDataSourceSrv } from '@grafana/runtime';
+
+import { assignModelProperties, containsVariable, Variable, variableTypes } from './variable';
+import { default as templateSrv } from './template_srv';
 import { DataSourceVariableModel, VariableHandler, VariableOption, VariableRefresh } from './state/types';
 import { store } from '../../store/store';
 import { optionsLoaded, setOptionFromUrl, setValue, validateVariableSelectionState } from './state/actions';
 import { getVaribleFromState } from './state/reducer';
-import { getDataSourceSrv } from '@grafana/runtime';
 
 export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel> = {
   canHandle: variable => variable.type === 'datasource',
@@ -21,7 +22,7 @@ export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel>
     let regex;
 
     if (variable.regex) {
-      regex = new TemplateSrv().replace(variable.regex, null, 'regex');
+      regex = templateSrv.replace(variable.regex, null, 'regex');
       regex = stringToJsRegex(regex);
     }
 

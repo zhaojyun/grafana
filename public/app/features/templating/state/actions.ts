@@ -2,7 +2,6 @@ import _ from 'lodash';
 import { actionCreatorFactory } from '../../../core/redux/actionCreatorFactory';
 import {
   AdHocVariableFilter,
-  IntervalVariableModel,
   QueryVariableModel,
   VariableModel,
   VariableOption,
@@ -11,9 +10,6 @@ import {
   VariableWithOptions,
 } from './types';
 import { ThunkResult } from '../../../types';
-import kbn from '../../../core/utils/kbn';
-import { getTimeSrv } from '../../dashboard/services/TimeSrv';
-import { TemplateSrv } from '../template_srv';
 import { variableHandlers } from './reducer';
 
 export interface CreateVariableFromModel<T extends VariableModel> {
@@ -86,32 +82,6 @@ export const setValue = (variable: VariableModel, option: VariableOption): Thunk
   return async dispatch => {
     dispatch(setOptionAsCurrent({ id: variable.id, option }));
     dispatch(selectOptionsForCurrentValue({ id: variable.id }));
-    if (variable.type === 'interval') {
-      const templateSrv = new TemplateSrv();
-      const intervalVariable = variable as IntervalVariableModel;
-      // TODO: add special handling here
-      if (!intervalVariable.auto) {
-        return;
-      }
-
-      // add auto option if missing
-      if (intervalVariable.options.length && intervalVariable.options[0].text !== 'auto') {
-        intervalVariable.options.unshift({
-          text: 'auto',
-          value: '$__auto_interval_' + intervalVariable.name,
-          selected: false,
-        });
-      }
-
-      const res = kbn.calculateInterval(
-        getTimeSrv().timeRange(),
-        intervalVariable.auto_count,
-        intervalVariable.auto_min
-      );
-      templateSrv.setGrafanaVariable('$__auto_interval_' + intervalVariable.name, res.interval);
-      // for backward compatibility, to be removed eventually
-      templateSrv.setGrafanaVariable('$__auto_interval', res.interval);
-    }
   };
 };
 
