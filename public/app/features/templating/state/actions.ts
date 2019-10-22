@@ -11,6 +11,7 @@ import {
 } from './types';
 import { ThunkResult } from '../../../types';
 import { variableHandlers } from './reducer';
+import { Graph } from '../../../core/utils/dag';
 
 export interface CreateVariableFromModel<T extends VariableModel> {
   id: number;
@@ -82,6 +83,69 @@ export const setValue = (variable: VariableModel, option: VariableOption): Thunk
   return async dispatch => {
     dispatch(setOptionAsCurrent({ id: variable.id, option }));
     dispatch(selectOptionsForCurrentValue({ id: variable.id }));
+    dispatch(variableUpdated(variable));
+  };
+};
+
+export const createGraph = (variables: VariableModel[]) => {
+  const g = new Graph();
+
+  variables.forEach(v => {
+    g.createNode(v.name);
+  });
+
+  variables.forEach(v1 => {
+    variables.forEach(v2 => {
+      if (v1 === v2) {
+        return;
+      }
+
+      const handler = variableHandlers.filter(handler => handler.canHandle(v1))[0];
+      if (!handler) {
+        return;
+      }
+
+      if (handler.dependsOn(v1, v2)) {
+        g.link(v1.name, v2.name);
+      }
+    });
+  });
+
+  return g;
+};
+
+export const variableUpdated = (variable: VariableModel, emitChangeEvents?: boolean): ThunkResult<void> => {
+  return async (dispatch, getState) => {
+    // if there is a variable lock ignore cascading update because we are in a boot up scenario
+    if (variable.initLock) {
+      return;
+    }
+
+    const g = createGraph(getState().templating.variables);
+    const node = g.getNode(variable.name);
+    let promises: Array<Promise<any>> = [];
+    if (node) {
+      promises = node.getOptimizedInputEdges().map(edge => {
+        const variable = getState().templating.variables.find(v => v.name === edge.inputNode.name);
+        if (!variable) {
+          return Promise.resolve();
+        }
+        const handler = variableHandlers.filter(handler => handler.canHandle(variable))[0];
+        if (!handler) {
+          return Promise.resolve();
+        }
+        return handler.updateOptions(variable);
+      });
+    }
+
+    return Promise.all(promises).then(() => {
+      console.log('TODO: Implement this');
+      // TODO: figure out the best way to implement the rows below
+      // if (emitChangeEvents) {
+      //   this.dashboard.templateVariableValueUpdated();
+      //   this.dashboard.startRefresh();
+      // }
+    });
   };
 };
 

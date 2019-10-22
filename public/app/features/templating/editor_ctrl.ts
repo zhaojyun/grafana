@@ -129,6 +129,7 @@ export class VariableEditorCtrl {
     };
 
     $scope.runQuery = () => {
+      store.dispatch(updateVariable({ id: $scope.current.id, model: $scope.current }));
       $scope.optionsLimit = 20;
       return variableSrv.updateOptions($scope.current).catch((err: { data: { message: any }; message: string }) => {
         if (err.data && err.data.message) {
@@ -167,8 +168,6 @@ export class VariableEditorCtrl {
 
     $scope.update = () => {
       if ($scope.isValid()) {
-        store.dispatch(updateVariable({ id: $scope.current.id, model: $scope.current }));
-
         $scope.runQuery().then(() => {
           $scope.reset();
           $scope.mode = 'list';

@@ -33,6 +33,20 @@ export const variableHandlers: VariableHandler[] = [
   textBoxVariableHandler,
 ];
 
+export const removeAngularPropsFromObject = (value: any) => {
+  const { $$hashKey, ...rest } = value;
+  if (rest.hasOwnProperty('options')) {
+    rest.options = rest.options.map(removeAngularPropsFromObject);
+  }
+  if (rest.hasOwnProperty('tags')) {
+    rest.tags = rest.tags.map(removeAngularPropsFromObject);
+  }
+  if (rest.hasOwnProperty('filters')) {
+    rest.filters = rest.filters.map(removeAngularPropsFromObject);
+  }
+  return { ...rest };
+};
+
 export interface TemplatingState {
   variables: VariableModel[];
 }
@@ -88,7 +102,7 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
 
         return {
           ...item,
-          ...model,
+          ...removeAngularPropsFromObject(model),
         };
       });
 
@@ -159,7 +173,7 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
           return item;
         }
 
-        const current = { ...option };
+        const current = removeAngularPropsFromObject(option);
 
         if (Array.isArray(current.text) && current.text.length > 0) {
           current.text = current.text.join(' + ');
@@ -235,7 +249,7 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
 
         return {
           ...item,
-          options,
+          options: options.map(removeAngularPropsFromObject),
         };
       });
 
@@ -257,7 +271,7 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
 
         return {
           ...item,
-          tags,
+          tags: tags.map(removeAngularPropsFromObject),
         };
       });
 
@@ -279,7 +293,7 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
 
         return {
           ...item,
-          filters,
+          filters: filters.map(removeAngularPropsFromObject),
         };
       });
 
