@@ -47,6 +47,10 @@ export class CloudWatchQueryEditor extends PureComponent<Props, State> {
     if (!query.hasOwnProperty('dimensions')) {
       query.dimensions = {};
     }
+
+    if (!query.hasOwnProperty('matchExact')) {
+      query.matchExact = true;
+    }
   }
 
   componentDidMount() {
@@ -236,6 +240,13 @@ export class CloudWatchQueryEditor extends PureComponent<Props, State> {
             label="HighRes"
             checked={query.highResolution}
             onChange={() => this.onChange({ ...query, highResolution: !query.highResolution })}
+          />
+
+          <Switch
+            label="Match Exact"
+            tooltip="Only show metrics that exactly match all defined dimension names."
+            checked={query.matchExact}
+            onChange={() => this.onChange({ ...query, matchExact: !query.matchExact })}
           />
           <div className="gf-form gf-form--grow">
             <div className="gf-form-label gf-form-label--grow" />

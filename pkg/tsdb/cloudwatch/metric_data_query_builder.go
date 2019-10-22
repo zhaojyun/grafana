@@ -49,10 +49,12 @@ func (mdib *metricDataInputBuilder) buildMetricDataQueries(query *CloudWatchQuer
 
 func buildSearchExpression(query *CloudWatchQuery, stat string) string {
 	counter := 1
+	dimensionSchemaKeys := ""
 	dimensionKeys := ""
 	searchTerm := fmt.Sprintf("MetricName=\"%v\" ", query.MetricName)
+
 	for key, values := range query.Dimensions {
-		dimensionKeys += fmt.Sprintf(",%s", key)
+		dimensionSchemaKeys += fmt.Sprintf(",%s", key)
 		hasStar := false
 		keySearchTerm := fmt.Sprintf("%s=(", key)
 		for i, value := range values {
@@ -74,8 +76,16 @@ func buildSearchExpression(query *CloudWatchQuery, stat string) string {
 			searchTerm += keySearchTerm
 		}
 
+		if hasStar || len(values) == 0 {
+			dimensionKeys += fmt.Sprintf(" \"%s\"", key)
+		}
+
 		counter++
 	}
-	searchExpression := fmt.Sprintf("SEARCH('{%s%s} %s', '%s', %s)", query.Namespace, dimensionKeys, searchTerm, stat, strconv.Itoa(query.Period))
-	return searchExpression
+
+	if query.MatchExact {
+		return fmt.Sprintf("SEARCH('{%s%s} %s', '%s', %s)", query.Namespace, dimensionSchemaKeys, searchTerm, stat, strconv.Itoa(query.Period))
+	} else {
+		return fmt.Sprintf("SEARCH('Namespace=\"%s\" %s  %s', '%s', %s)", query.Namespace, dimensionKeys, searchTerm, stat, strconv.Itoa(query.Period))
+	}
 }

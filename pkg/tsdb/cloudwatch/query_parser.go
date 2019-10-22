@@ -105,6 +105,8 @@ func parseQuery(model *simplejson.Json, refId string) (*CloudWatchQuery, error) 
 	}
 	highResolution := model.Get("highResolution").MustBool(false)
 
+	matchExact := model.Get("matchExact").MustBool(true)
+
 	return &CloudWatchQuery{
 		RefId:          refId,
 		Identifier:     identifier,
@@ -119,6 +121,7 @@ func parseQuery(model *simplejson.Json, refId string) (*CloudWatchQuery, error) 
 		Expression:     expression,
 		ReturnData:     returnData,
 		HighResolution: highResolution,
+		MatchExact:     matchExact,
 	}, nil
 }
 
