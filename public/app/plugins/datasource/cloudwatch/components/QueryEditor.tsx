@@ -1,6 +1,5 @@
 import React, { PureComponent, ChangeEvent } from 'react';
 import { SelectableValue } from '@grafana/data';
-import { CloudWatchQuery } from '../types';
 import {
   Input,
   QueryEditorProps,
@@ -10,6 +9,8 @@ import {
   EventsWithValidation,
   Switch,
 } from '@grafana/ui';
+import appEvents from 'app/core/app_events';
+import { CloudWatchQuery } from '../types';
 import DataSource, { Options } from '../datasource';
 import { Stats, Dimensions, InlineFormField, FormField, Alias } from './';
 
@@ -20,6 +21,7 @@ interface State {
   namespaces: Array<SelectableValue<string>>;
   metricNames: Array<SelectableValue<string>>;
   variableOptionGroup: SelectableValue<string>;
+  searchExpressions: string[];
 }
 
 const idValidationEvents: ValidationEvents = {
@@ -32,7 +34,7 @@ const idValidationEvents: ValidationEvents = {
 };
 
 export class CloudWatchQueryEditor extends PureComponent<Props, State> {
-  state: State = { regions: [], namespaces: [], metricNames: [], variableOptionGroup: {} };
+  state: State = { regions: [], namespaces: [], metricNames: [], variableOptionGroup: {}, searchExpressions: [] };
 
   componentWillMount() {
     const { query } = this.props;
@@ -70,6 +72,13 @@ export class CloudWatchQueryEditor extends PureComponent<Props, State> {
         });
       }
     );
+
+    // Temporary in order to display used searchExpressions
+    appEvents.on('cloudwatch-search-expression-received', ({ refId, searchExpressions }: any) => {
+      if (refId === this.props.query.refId) {
+        this.setState({ ...this.state, searchExpressions });
+      }
+    });
   }
 
   loadMetricNames = async () => {
@@ -83,6 +92,7 @@ export class CloudWatchQueryEditor extends PureComponent<Props, State> {
   ];
 
   onChange(query: CloudWatchQuery) {
+    this.setState({ ...this.state, searchExpressions: [] });
     const { onChange, onRunQuery } = this.props;
     onChange(query);
     onRunQuery();
@@ -90,7 +100,7 @@ export class CloudWatchQueryEditor extends PureComponent<Props, State> {
 
   render() {
     const { query, datasource, onChange, onRunQuery } = this.props;
-    const { regions, namespaces, variableOptionGroup: variableOptionGroup } = this.state;
+    const { regions, namespaces, variableOptionGroup: variableOptionGroup, searchExpressions } = this.state;
     return (
       <>
         <InlineFormField
@@ -245,6 +255,15 @@ export class CloudWatchQueryEditor extends PureComponent<Props, State> {
             <div className="gf-form-label gf-form-label--grow" />
           </div>
         </div>
+
+        {/* Temporary in order to display used searchExpressions */}
+        {searchExpressions.length > 0 && (
+          <div className="grafana-info-box">
+            {searchExpressions.map(s => (
+              <div className="gf-form-inline"> {s} </div>
+            ))}
+          </div>
+        )}
       </>
     );
   }

@@ -155,6 +155,11 @@ export default class CloudWatchDatasource extends DataSourceApi<CloudWatchQuery>
         if (res.results) {
           for (const query of request.queries) {
             const queryRes = res.results[query.refId];
+            // Temporary in order to display used searchExpressions in the query editor ui
+            appEvents.emit('cloudwatch-search-expression-received', {
+              refId: query.refId,
+              searchExpressions: queryRes.meta.searchExpressions,
+            });
             if (queryRes) {
               for (const series of queryRes.series) {
                 const s = { target: series.name, datapoints: series.points } as any;
