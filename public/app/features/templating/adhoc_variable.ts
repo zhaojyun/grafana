@@ -2,7 +2,7 @@ import { assignModelProperties, Variable, variableTypes } from './variable';
 import { AdHocVariableModel, VariableHandler } from './state/types';
 import { filtersAdded } from './state/actions';
 import { store } from '../../store/store';
-import { getVaribleFromState } from './state/reducer';
+import { getVariableFromState } from './state/reducer';
 
 export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
   canHandle: variable => variable.type === 'adhoc',
@@ -17,7 +17,7 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
     datasource: null,
     filters: [],
     skipUrlSync: false,
-    initLock: null,
+    initialized: false,
   }),
   setValueFromUrl: (variable, urlValue) => {
     if (!Array.isArray(urlValue)) {
@@ -37,7 +37,7 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
     });
 
     store.dispatch(filtersAdded({ id: variable.id, filters }));
-    const updatedVariable = getVaribleFromState(variable);
+    const updatedVariable = getVariableFromState(variable);
 
     return Promise.resolve(updatedVariable);
   },
@@ -57,7 +57,7 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
   },
   setFilters: (variable, filters) => {
     store.dispatch(filtersAdded({ id: variable.id, filters }));
-    return getVaribleFromState(variable);
+    return getVariableFromState(variable);
   },
 };
 

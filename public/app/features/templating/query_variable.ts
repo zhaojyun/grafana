@@ -17,7 +17,7 @@ import {
 } from './state/types';
 import { optionsLoaded, setOptionFromUrl, setValue, tagsLoaded, validateVariableSelectionState } from './state/actions';
 import { store } from '../../store/store';
-import { getVaribleFromState } from './state/reducer';
+import { getVariableFromState } from './state/reducer';
 
 function getNoneOption(): VariableOption {
   return { text: 'None', value: '', isNone: true, selected: false };
@@ -34,7 +34,7 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
     await store.dispatch(tagsLoaded({ id: variable.id, tags }));
     await store.dispatch(validateVariableSelectionState(variable));
 
-    return getVaribleFromState(variable) as QueryVariableModel;
+    return getVariableFromState(variable) as QueryVariableModel;
   },
   getDefaults: () => ({
     id: null,
@@ -58,15 +58,15 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
     useTags: false,
     tagsQuery: '',
     tagValuesQuery: '',
-    initLock: null,
+    initialized: false,
   }),
   setValueFromUrl: async (variable, urlValue) => {
     await store.dispatch(setOptionFromUrl(variable, urlValue));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   setValue: async (variable, option) => {
     await store.dispatch(setValue(variable, option));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   getValueForUrl: variable => {
     if (variable.current.text === 'All') {

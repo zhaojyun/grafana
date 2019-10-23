@@ -6,7 +6,7 @@ import { default as templateSrv } from './template_srv';
 import { DataSourceVariableModel, VariableHandler, VariableOption, VariableRefresh } from './state/types';
 import { store } from '../../store/store';
 import { optionsLoaded, setOptionFromUrl, setValue, validateVariableSelectionState } from './state/actions';
-import { getVaribleFromState } from './state/reducer';
+import { getVariableFromState } from './state/reducer';
 
 export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel> = {
   canHandle: variable => variable.type === 'datasource',
@@ -51,7 +51,7 @@ export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel>
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
     await store.dispatch(validateVariableSelectionState(variable));
 
-    return getVaribleFromState(variable);
+    return getVariableFromState(variable);
   },
   getDefaults: () => ({
     id: null,
@@ -67,15 +67,15 @@ export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel>
     includeAll: false,
     refresh: VariableRefresh.onDashboardLoad,
     skipUrlSync: false,
-    initLock: null,
+    initialized: false,
   }),
   setValueFromUrl: async (variable, urlValue) => {
     await store.dispatch(setOptionFromUrl(variable, urlValue));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   setValue: async (variable, option) => {
     await store.dispatch(setValue(variable, option));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   getValueForUrl: variable => {
     if (variable.current.text === 'All') {

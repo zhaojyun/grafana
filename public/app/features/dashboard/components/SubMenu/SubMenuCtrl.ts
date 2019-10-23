@@ -1,6 +1,9 @@
-import angular, { ILocationService } from 'angular';
+import angular, { ILocationService, IScope } from 'angular';
 import _ from 'lodash';
 import { VariableSrv } from 'app/features/templating/all';
+import { store } from '../../../../store/store';
+import { variableUpdated } from 'app/features/templating/state/actions';
+import { getVariablesFromState } from '../../../templating/state/reducer';
 
 export class SubMenuCtrl {
   annotations: any;
@@ -8,7 +11,7 @@ export class SubMenuCtrl {
   dashboard: any;
 
   /** @ngInject */
-  constructor(private variableSrv: VariableSrv, private $location: ILocationService) {
+  constructor(private variableSrv: VariableSrv, private $location: ILocationService, private $scope: IScope) {
     this.annotations = this.dashboard.templating.list;
     this.variables = this.variableSrv.variables;
   }
@@ -17,8 +20,18 @@ export class SubMenuCtrl {
     this.dashboard.startRefresh();
   }
 
-  variableUpdated(variable: any) {
-    this.variableSrv.variableUpdated(variable, true);
+  async update(variable: any) {
+    // tslint:disable-next-line:triple-equals copied directly from current html with != only could be a typo
+    if (variable.current.value != variable.query) {
+      await variable.updateOptions();
+      await variableUpdated(variable);
+    }
+  }
+
+  async variableUpdated(variable: any) {
+    await store.dispatch(variableUpdated(variable, true));
+    this.variables = getVariablesFromState();
+    this.$scope.$apply();
   }
 
   openEditView(editview: any) {

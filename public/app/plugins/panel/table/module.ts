@@ -10,6 +10,8 @@ import { isTableData } from '@grafana/data';
 import { TemplateSrv } from 'app/features/templating/template_srv';
 import { PanelEvents } from '@grafana/ui';
 import { CoreEvents } from 'app/types';
+import { setAdhocFilter } from '../../../features/templating/state/actions';
+import { store } from '../../../store/store';
 
 class TablePanelCtrl extends MetricsPanelCtrl {
   static templateUrl = 'module.html';
@@ -54,8 +56,7 @@ class TablePanelCtrl extends MetricsPanelCtrl {
     $injector: any,
     templateSrv: TemplateSrv,
     private annotationsSrv: any,
-    private $sanitize: any,
-    private variableSrv: any
+    private $sanitize: any
   ) {
     super($scope, $injector);
 
@@ -253,7 +254,7 @@ class TablePanelCtrl extends MetricsPanelCtrl {
       selector: '[data-link-tooltip]',
     });
 
-    function addFilterClicked(e: any) {
+    async function addFilterClicked(e: any) {
       const filterData = $(e.currentTarget).data();
       const options = {
         datasource: panel.datasource,
@@ -262,7 +263,8 @@ class TablePanelCtrl extends MetricsPanelCtrl {
         operator: filterData.operator,
       };
 
-      ctrl.variableSrv.setAdhocFilter(options);
+      await store.dispatch(setAdhocFilter(options));
+      scope.$apply();
     }
 
     elem.on('click', '.table-panel-page-link', switchPage);

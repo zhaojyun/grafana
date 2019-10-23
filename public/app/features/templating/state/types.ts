@@ -93,7 +93,7 @@ export interface VariableModel {
   label: string;
   hide: VariableHide;
   skipUrlSync: boolean;
-  initLock: Promise<any>;
+  initialized: boolean;
 }
 
 export interface VariableHandler<T extends VariableModel = VariableModel> {

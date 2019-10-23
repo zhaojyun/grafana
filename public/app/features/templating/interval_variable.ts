@@ -5,7 +5,7 @@ import { getTimeSrv } from '../dashboard/services/TimeSrv';
 import { IntervalVariableModel, VariableHandler, VariableOption, VariableRefresh } from './state/types';
 import { store } from '../../store/store';
 import { optionsLoaded, setOptionFromUrl, setValue, validateVariableSelectionState } from './state/actions';
-import { getVaribleFromState } from './state/reducer';
+import { getVariableFromState } from './state/reducer';
 import { default as templateSrv } from './template_srv';
 
 export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
@@ -34,7 +34,7 @@ export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
     await store.dispatch(validateVariableSelectionState(variable));
 
-    return getVaribleFromState(variable);
+    return getVariableFromState(variable);
   },
   getDefaults: () => ({
     id: null,
@@ -50,16 +50,16 @@ export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
     auto_min: '10s',
     auto_count: 30,
     skipUrlSync: false,
-    initLock: null,
+    initialized: false,
   }),
   setValueFromUrl: async (variable, urlValue) => {
     await store.dispatch(setOptionFromUrl(variable, urlValue));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   setValue: async (variable, option) => {
     setAutoIntervalVariable(variable);
     await store.dispatch(setValue(variable, option));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   getValueForUrl: variable => {
     return variable.current.value;

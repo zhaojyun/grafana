@@ -6,6 +6,7 @@ import {
   filtersAdded,
   optionsLoaded,
   selectOptionsForCurrentValue,
+  setInitialized,
   setOptionAsCurrent,
   tagsLoaded,
   updateVariable,
@@ -20,8 +21,15 @@ import { datasourceVariableHandler } from '../datasource_variable';
 import { intervalVariableHandler } from '../interval_variable';
 import { textBoxVariableHandler } from '../TextBoxVariable';
 
-export const getVaribleFromState = <T extends VariableModel = VariableModel>(variable: T) =>
+export const getLastCreatedVaribleFromState = () => {
+  const lastId = store.getState().templating.lastId;
+  return getVariableFromState({ id: lastId } as VariableModel);
+};
+
+export const getVariableFromState = <T extends VariableModel = VariableModel>(variable: T) =>
   store.getState().templating.variables[variable.id];
+
+export const getVariablesFromState = () => store.getState().templating.variables;
 
 const variableHandlers: VariableHandler[] = [
   adhocVariableHandler,
@@ -61,41 +69,29 @@ export const removeAngularPropsFromObject = (value: any) => {
 
 export interface TemplatingState {
   variables: VariableModel[];
+  lastId: number;
+  nextId: number;
 }
 
 export const initialState: TemplatingState = {
   variables: [],
+  lastId: -1,
+  nextId: 0,
 };
 
 export const templatingReducer = reducerFactory<TemplatingState>(initialState)
   .addMapper({
     filter: createVariableFromModel,
     mapper: (state, action) => {
-      const { id, model } = action.payload;
+      const { model } = action.payload;
       const handler = getVariableHandler(model.type);
-      const defaults = { ...handler.getDefaults(), ...model, id };
-
-      if (id === state.variables.length) {
-        return {
-          ...state,
-          variables: [...state.variables, defaults],
-        };
-      }
-
-      const variables = state.variables.map((item, index) => {
-        if (index !== id) {
-          return item;
-        }
-
-        return {
-          ...item,
-          ...defaults,
-        };
-      });
+      const defaults = { ...handler.getDefaults(), ...model, id: state.nextId };
 
       return {
         ...state,
-        variables,
+        lastId: state.nextId,
+        nextId: state.nextId + 1,
+        variables: [...state.variables, defaults],
       };
     },
   })
@@ -107,15 +103,18 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
       // Variable not stored in state yet
       if (id === -1) {
         const handler = getVariableHandler(model.type);
+        const lastId = state.variables.length;
         const defaults = {
           ...handler.getDefaults(),
           ...removeAngularPropsFromObject(model),
-          id: state.variables.length,
+          id: lastId,
         };
 
         return {
           ...state,
           variables: [...state.variables, defaults],
+          lastId,
+          nextId: lastId + 1,
         };
       }
 
@@ -314,6 +313,28 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
         return {
           ...item,
           filters: filters.map(removeAngularPropsFromObject),
+        };
+      });
+
+      return {
+        ...state,
+        variables,
+      };
+    },
+  })
+  .addMapper({
+    filter: setInitialized,
+    mapper: (state, action) => {
+      const { id } = action.payload;
+
+      const variables = state.variables.map((item, index) => {
+        if (index !== id) {
+          return item;
+        }
+
+        return {
+          ...item,
+          initialized: true,
         };
       });
 

@@ -8,6 +8,8 @@ import { TemplateSrv } from './template_srv';
 import { AppEvents } from '@grafana/data';
 import { store } from '../../store/store';
 import { changeVariableType, duplicateVariable, updateVariable } from './state/actions';
+import { getLastCreatedVaribleFromState, getVariableFromState, getVariableHandler } from './state/reducer';
+import { VariableModel } from './state/types';
 
 export class VariableEditorCtrl {
   /** @ngInject */
@@ -132,11 +134,12 @@ export class VariableEditorCtrl {
       await store.dispatch(updateVariable({ id: $scope.current.id, model: $scope.current }));
       if ($scope.current.id === -1) {
         // Variable has been added to state but isn't aware of it yet
-        $scope.current.id = store.getState().templating.variables.length - 1;
+        $scope.current.id = store.getState().templating.lastId;
       }
       $scope.optionsLimit = 20;
       try {
-        return await variableSrv.updateOptions($scope.current);
+        const handler = getVariableHandler($scope.current.type);
+        return await handler.updateOptions($scope.current);
       } catch (err) {
         if (err.data && err.data.message) {
           err.message = err.data.message;
@@ -146,6 +149,7 @@ export class VariableEditorCtrl {
           'Template variables could not be initialized: ' + err.message,
         ]);
       }
+      return Promise.resolve();
     };
 
     $scope.onQueryChange = (query: any, definition: any) => {
@@ -165,10 +169,8 @@ export class VariableEditorCtrl {
     };
 
     $scope.duplicate = (variable: { getSaveModel: () => void; name: string; id: number }) => {
-      const clone = _.cloneDeep(variable.getSaveModel());
       store.dispatch(duplicateVariable({ copyFromId: variable.id }));
-      $scope.current = variableSrv.createVariableFromModel(-1, clone, false);
-      $scope.current.name = 'copy_of_' + variable.name;
+      $scope.current = getLastCreatedVaribleFromState();
       variableSrv.addVariable($scope.current);
     };
 
@@ -184,7 +186,8 @@ export class VariableEditorCtrl {
 
     $scope.reset = () => {
       $scope.currentIsNew = true;
-      $scope.current = variableSrv.createVariableFromModel(-1, { type: 'query' }, false);
+      const handler = getVariableHandler('query');
+      $scope.current = handler.getDefaults();
 
       // this is done here in case a new data source type variable was added
       $scope.datasources = _.filter(datasourceSrv.getMetricSources(), ds => {
@@ -202,13 +205,7 @@ export class VariableEditorCtrl {
     $scope.typeChanged = function() {
       const old = $scope.current;
       store.dispatch(changeVariableType({ id: old.id, changeToType: $scope.current.type }));
-      $scope.current = variableSrv.createVariableFromModel(
-        old.id,
-        {
-          type: $scope.current.type,
-        },
-        false
-      );
+      $scope.current = getVariableFromState({ id: old.id } as VariableModel);
       $scope.current.name = old.name;
       $scope.current.label = old.label;
 

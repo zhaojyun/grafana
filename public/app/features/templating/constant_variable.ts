@@ -2,7 +2,7 @@ import { assignModelProperties, Variable, variableTypes } from './variable';
 import { ConstantVariableModel, VariableHandler } from './state/types';
 import { store } from '../../store/store';
 import { optionsLoaded, setOptionFromUrl, setValue } from './state/actions';
-import { getVaribleFromState } from './state/reducer';
+import { getVariableFromState } from './state/reducer';
 
 export const constantVariableHandler: VariableHandler<ConstantVariableModel> = {
   canHandle: variable => variable.type === 'constant',
@@ -11,7 +11,7 @@ export const constantVariableHandler: VariableHandler<ConstantVariableModel> = {
     const options = [{ text: variable.query.trim(), value: variable.query.trim(), selected: false }];
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
     await constantVariableHandler.setValue(variable, options[0]);
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   getDefaults: () => ({
     id: null,
@@ -23,15 +23,15 @@ export const constantVariableHandler: VariableHandler<ConstantVariableModel> = {
     current: null,
     options: [],
     skipUrlSync: false,
-    initLock: null,
+    initialized: false,
   }),
   setValueFromUrl: async (variable, urlValue) => {
     await store.dispatch(setOptionFromUrl(variable, urlValue));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   setValue: async (variable, option) => {
     await store.dispatch(setValue(variable, option));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   getValueForUrl: variable => {
     return variable.current.value;

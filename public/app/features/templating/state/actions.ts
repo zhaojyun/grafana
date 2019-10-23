@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { actionCreatorFactory } from '../../../core/redux/actionCreatorFactory';
 import {
   AdHocVariableFilter,
+  AdHocVariableModel,
   QueryVariableModel,
   VariableModel,
   VariableOption,
@@ -10,12 +11,11 @@ import {
   VariableWithOptions,
 } from './types';
 import { ThunkResult } from '../../../types';
-import { getVariableHandler } from './reducer';
+import { getVariableFromState, getVariableHandler } from './reducer';
 import { Graph } from '../../../core/utils/dag';
 import { DashboardModel } from '../../dashboard/state';
 
 export interface CreateVariableFromModel<T extends VariableModel> {
-  id: number;
   model: T;
 }
 
@@ -23,9 +23,17 @@ export const createVariableFromModel = actionCreatorFactory<CreateVariableFromMo
   'Core.Templating.createVariableFromModel'
 ).create();
 
-export interface UpdateVariable<T extends VariableModel> extends CreateVariableFromModel<T> {}
+export interface UpdateVariable<T extends VariableModel> extends CreateVariableFromModel<T> {
+  id: number;
+}
 
 export const updateVariable = actionCreatorFactory<UpdateVariable<any>>('Core.Templating.updateVariable').create();
+
+export interface SetInitialized {
+  id: number;
+}
+
+export const setInitialized = actionCreatorFactory<SetInitialized>('Core.Templating.setInitialized').create();
 
 export interface DuplicateVariable {
   copyFromId: number;
@@ -114,7 +122,7 @@ export const createGraph = (variables: VariableModel[]) => {
 export const variableUpdated = (variable: VariableModel, emitchangeevents?: boolean): ThunkResult<void> => {
   return async (dispatch, getState) => {
     // if there is a variable lock ignore cascading update because we are in a boot up scenario
-    if (variable.initLock) {
+    if (!variable.initialized) {
       return;
     }
 
@@ -127,7 +135,7 @@ export const variableUpdated = (variable: VariableModel, emitchangeevents?: bool
     const node = g.getNode(variable.name);
     let promises: Array<Promise<any>> = [];
     if (node) {
-      promises = node.getOptimizedInputEdges().map(edge => {
+      promises = node.getOptimizedInputEdges().map(async edge => {
         const variable = getState().templating.variables.find(v => v.name === edge.inputNode.name);
         if (!variable) {
           return Promise.resolve();
@@ -249,41 +257,80 @@ export const validateVariableSelectionState = (variable: VariableWithOptions): T
   };
 };
 
-export const processVariables = (queryParams: any): ThunkResult<void> => {
+export const setAdhocFilter = (options: {
+  datasource: string;
+  key: string;
+  value: string;
+  operator: string;
+}): ThunkResult<void> => {
   return async (dispatch, getState) => {
     const variables = getState().templating.variables;
-    for (let index = 0; index < variables.length; index++) {
-      const dependencies = [];
-      const variable = variables[index] as QueryVariableModel;
-      const handler = getVariableHandler(variable.type);
+    let variable = _.find(variables, {
+      type: 'adhoc',
+      datasource: options.datasource,
+    }) as AdHocVariableModel;
 
-      variable.initLock = new Promise(() => {});
-
-      for (const otherVariable of variables) {
-        if (handler.dependsOn(variable, otherVariable)) {
-          dependencies.push(otherVariable.initLock);
-        }
-      }
-
-      await Promise.all(dependencies);
-
-      const urlValue = queryParams['var-' + variable.name];
-      if (urlValue !== void 0) {
-        await handler.setValueFromUrl(variable, urlValue);
-        await Promise.resolve(variable.initLock);
-        return;
-      }
-
-      if (
-        variable.refresh === VariableRefresh.onDashboardLoad ||
-        variable.refresh === VariableRefresh.onTimeRangeChanged
-      ) {
-        await handler.updateOptions(variable);
-        await Promise.resolve(variable.initLock);
-        return;
-      }
-
-      variable.initLock = Promise.resolve();
+    if (!variable) {
+      dispatch(
+        createVariableFromModel({
+          model: {
+            name: 'Filters',
+            type: 'adhoc',
+            datasource: options.datasource,
+          },
+        })
+      );
+      const id = getState().templating.lastId;
+      variable = getVariableFromState({ id } as VariableModel);
     }
+
+    const filters = variable.filters;
+    let filter: AdHocVariableFilter = _.find(filters, { key: options.key, value: options.value });
+
+    if (!filter) {
+      filter = { key: options.key, value: options.value, operator: options.operator, condition: '' };
+      filters.push(filter);
+    }
+
+    filter.operator = options.operator;
+    dispatch(filtersAdded({ id: variable.id, filters }));
+    await dispatch(variableUpdated(variable, true));
+  };
+};
+
+export const processVariable = (variable: QueryVariableModel, queryParams: any): ThunkResult<void> => {
+  return async (dispatch, getState) => {
+    const variableInState = getVariableFromState(variable);
+    if (variableInState.initialized) {
+      return Promise.resolve(variableInState);
+    }
+
+    const variables = getState().templating.variables;
+    const handler = getVariableHandler(variableInState.type);
+
+    for (const otherVariable of variables) {
+      if (handler.dependsOn(variableInState, otherVariable)) {
+        await dispatch(processVariable(otherVariable as QueryVariableModel, queryParams));
+      }
+    }
+
+    const urlValue = queryParams['var-' + variableInState.name];
+    if (urlValue !== void 0) {
+      await handler.setValueFromUrl(variableInState, urlValue);
+      dispatch(setInitialized({ id: variableInState.id }));
+      return Promise.resolve(getVariableFromState(variableInState));
+    }
+
+    if (
+      variableInState.refresh === VariableRefresh.onDashboardLoad ||
+      variableInState.refresh === VariableRefresh.onTimeRangeChanged
+    ) {
+      await handler.updateOptions(variableInState);
+      dispatch(setInitialized({ id: variableInState.id }));
+      return Promise.resolve(getVariableFromState(variableInState));
+    }
+
+    dispatch(setInitialized({ id: variableInState.id }));
+    return Promise.resolve(getVariableFromState(variableInState));
   };
 };

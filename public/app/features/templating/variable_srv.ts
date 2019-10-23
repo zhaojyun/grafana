@@ -1,5 +1,5 @@
 // Libaries
-import angular, { auto, ILocationService, IPromise, IQService } from 'angular';
+import angular, { ILocationService, IPromise, IQService } from 'angular';
 import _ from 'lodash';
 // Utils & Services
 import coreModule from 'app/core/core_module';
@@ -12,7 +12,8 @@ import { DashboardModel } from 'app/features/dashboard/state/DashboardModel';
 import { TimeRange } from '@grafana/data';
 import { CoreEvents } from 'app/types';
 import { store } from 'app/store/store';
-import { createVariableFromModel } from './state/actions';
+import { createVariableFromModel, processVariable } from './state/actions';
+import { getLastCreatedVaribleFromState, getVariablesFromState } from './state/reducer';
 
 export class VariableSrv {
   dashboard: DashboardModel;
@@ -22,14 +23,13 @@ export class VariableSrv {
   constructor(
     private $q: IQService,
     private $location: ILocationService,
-    private $injector: auto.IInjectorService,
     private templateSrv: TemplateSrv,
     private timeSrv: TimeSrv
   ) {
     this.createVariableFromModel = this.createVariableFromModel.bind(this);
   }
 
-  init(dashboard: DashboardModel) {
+  async init(dashboard: DashboardModel) {
     this.dashboard = dashboard;
     this.dashboard.events.on(CoreEvents.timeRangeUpdated, this.onTimeRangeUpdated.bind(this));
     this.dashboard.events.on(
@@ -38,26 +38,18 @@ export class VariableSrv {
     );
 
     // create working class models representing variables
-    this.variables = dashboard.templating.list = dashboard.templating.list.map((model: any, index: number) =>
-      this.createVariableFromModel(index, model)
+    this.variables = dashboard.templating.list = dashboard.templating.list.map((model: any) =>
+      this.createVariableFromModel(model)
     );
     this.templateSrv.init(this.variables, this.timeSrv.timeRange());
 
-    // init variables
-    for (const variable of this.variables) {
-      variable.initLock = this.$q.defer();
-    }
-
     const queryParams = this.$location.search();
-    return this.$q
-      .all(
-        this.variables.map(variable => {
-          return this.processVariable(variable, queryParams);
-        })
-      )
+    return Promise.all(this.variables.map(variable => store.dispatch(processVariable(variable, queryParams))))
       .then(() => {
+        this.variables = getVariablesFromState();
         this.templateSrv.updateIndex();
-      });
+      })
+      .catch(err => console.log(err));
   }
 
   onTimeRangeUpdated(timeRange: TimeRange) {
@@ -108,7 +100,7 @@ export class VariableSrv {
       });
   }
 
-  createVariableFromModel(index: number, model: any, addToState = true) {
+  createVariableFromModel(model: any, addToState = true) {
     // @ts-ignore
     const ctor = variableTypes[model.type].ctor;
     if (!ctor) {
@@ -119,13 +111,12 @@ export class VariableSrv {
 
     if (addToState) {
       if (model.name) {
-        store.dispatch(createVariableFromModel({ id: index, model: { ...model, id: index } }));
+        store.dispatch(createVariableFromModel({ model }));
       }
     }
 
-    const variable: any = this.$injector.instantiate(ctor, { model: model });
-    variable.id = index;
-    return variable;
+    // const variable: any = this.$injector.instantiate(ctor, { model: model });
+    return getLastCreatedVaribleFromState();
   }
 
   addVariable(variable: any) {
@@ -321,7 +312,7 @@ export class VariableSrv {
       datasource: options.datasource,
     } as any);
     if (!variable) {
-      variable = this.createVariableFromModel(this.variables.length, {
+      variable = this.createVariableFromModel({
         name: 'Filters',
         type: 'adhoc',
         datasource: options.datasource,

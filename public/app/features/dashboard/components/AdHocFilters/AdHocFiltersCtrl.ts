@@ -1,10 +1,12 @@
 import _ from 'lodash';
-import angular, { IQService } from 'angular';
+import angular, { IQService, IScope } from 'angular';
 import coreModule from 'app/core/core_module';
 import { DashboardModel } from 'app/features/dashboard/state';
 import DatasourceSrv from 'app/features/plugins/datasource_srv';
-import { VariableSrv } from 'app/features/templating/all';
 import { CoreEvents } from 'app/types';
+import { store } from '../../../../store/store';
+import { variableUpdated } from '../../../templating/state/actions';
+import { getVariableFromState } from '../../../templating/state/reducer';
 
 export class AdHocFiltersCtrl {
   segments: any;
@@ -17,8 +19,7 @@ export class AdHocFiltersCtrl {
     private uiSegmentSrv: any,
     private datasourceSrv: DatasourceSrv,
     private $q: IQService,
-    private variableSrv: VariableSrv,
-    $scope: any
+    private $scope: IScope
   ) {
     this.removeTagFilterSegment = uiSegmentSrv.newSegment({
       fake: true,
@@ -116,7 +117,7 @@ export class AdHocFiltersCtrl {
     this.updateVariableModel();
   }
 
-  updateVariableModel() {
+  async updateVariableModel() {
     const filters: any[] = [];
     let filterIndex = -1;
     let hasFakes = false;
@@ -153,7 +154,9 @@ export class AdHocFiltersCtrl {
     }
 
     this.variable.setFilters(filters);
-    this.variableSrv.variableUpdated(this.variable, true);
+    await store.dispatch(variableUpdated(this.variable, true));
+    this.variable = getVariableFromState(this.variable);
+    this.$scope.$apply();
   }
 }
 

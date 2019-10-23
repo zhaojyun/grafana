@@ -3,7 +3,7 @@ import { assignModelProperties, Variable, variableTypes } from './variable';
 import { CustomVariableModel, VariableHandler, VariableOption } from './state/types';
 import { store } from '../../store/store';
 import { optionsLoaded, setOptionFromUrl, setValue, validateVariableSelectionState } from './state/actions';
-import { getVaribleFromState } from './state/reducer';
+import { getVariableFromState } from './state/reducer';
 
 export const customVariableHandler: VariableHandler<CustomVariableModel> = {
   canHandle: variable => variable.type === 'custom',
@@ -22,7 +22,7 @@ export const customVariableHandler: VariableHandler<CustomVariableModel> = {
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
     await store.dispatch(validateVariableSelectionState(variable));
 
-    return getVaribleFromState(variable);
+    return getVariableFromState(variable);
   },
   getDefaults: () => ({
     id: null,
@@ -37,15 +37,15 @@ export const customVariableHandler: VariableHandler<CustomVariableModel> = {
     multi: false,
     allValue: null,
     skipUrlSync: false,
-    initLock: null,
+    initialized: false,
   }),
   setValueFromUrl: async (variable, urlValue) => {
     await store.dispatch(setOptionFromUrl(variable, urlValue));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   setValue: async (variable, option) => {
     await store.dispatch(setValue(variable, option));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   getValueForUrl: variable => {
     if (variable.current.text === 'All') {

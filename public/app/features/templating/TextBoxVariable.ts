@@ -2,7 +2,7 @@ import { assignModelProperties, Variable, variableTypes } from './variable';
 import { TextBoxVariableModel, VariableHandler, VariableHide, VariableOption } from './state/types';
 import { store } from '../../store/store';
 import { optionsLoaded, setOptionFromUrl, setValue, updateVariable } from './state/actions';
-import { getVaribleFromState } from './state/reducer';
+import { getVariableFromState } from './state/reducer';
 
 export const textBoxVariableHandler: VariableHandler<TextBoxVariableModel> = {
   canHandle: variable => variable.type === 'custom',
@@ -13,7 +13,7 @@ export const textBoxVariableHandler: VariableHandler<TextBoxVariableModel> = {
     await store.dispatch(optionsLoaded({ id: variable.id, options }));
     await textBoxVariableHandler.setValue(variable, options[0]);
 
-    return getVaribleFromState(variable);
+    return getVariableFromState(variable);
   },
   getDefaults: () => ({
     id: null,
@@ -25,16 +25,16 @@ export const textBoxVariableHandler: VariableHandler<TextBoxVariableModel> = {
     current: null,
     options: [],
     skipUrlSync: false,
-    initLock: null,
+    initialized: false,
   }),
   setValueFromUrl: async (variable, urlValue) => {
     await store.dispatch(updateVariable({ id: variable.id, model: { ...variable, query: urlValue } }));
     await store.dispatch(setOptionFromUrl(variable, urlValue));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   setValue: async (variable, option) => {
     await store.dispatch(setValue(variable, option));
-    return Promise.resolve(getVaribleFromState(variable));
+    return Promise.resolve(getVariableFromState(variable));
   },
   getValueForUrl: variable => {
     return variable.current.value;
