@@ -7,8 +7,13 @@ import { VariableSrv } from './all';
 import { TemplateSrv } from './template_srv';
 import { AppEvents } from '@grafana/data';
 import { store } from '../../store/store';
-import { changeVariableType, duplicateVariable, updateVariable } from './state/actions';
-import { getLastCreatedVaribleFromState, getVariableFromState, getVariableHandler } from './state/reducer';
+import { addVariable, changeVariableType, duplicate, updateVariable } from './state/actions';
+import {
+  getLastCreatedVaribleFromState,
+  getVariableFromState,
+  getVariableHandler,
+  getVariablesFromState,
+} from './state/reducer';
 import { VariableModel } from './state/types';
 
 export class VariableEditorCtrl {
@@ -59,7 +64,7 @@ export class VariableEditorCtrl {
     $scope.init = () => {
       $scope.mode = 'list';
 
-      $scope.variables = variableSrv.variables;
+      $scope.variables = getVariablesFromState();
       $scope.reset();
 
       $scope.$watch('mode', (val: string) => {
@@ -79,7 +84,8 @@ export class VariableEditorCtrl {
 
     $scope.add = () => {
       if ($scope.isValid()) {
-        variableSrv.addVariable($scope.current);
+        store.dispatch(addVariable($scope.current));
+        $scope.variables = getVariablesFromState();
         $scope.update();
       }
     };
@@ -168,10 +174,11 @@ export class VariableEditorCtrl {
       });
     };
 
-    $scope.duplicate = (variable: { getSaveModel: () => void; name: string; id: number }) => {
-      store.dispatch(duplicateVariable({ copyFromId: variable.id }));
+    $scope.duplicate = (variable: any) => {
+      store.dispatch(duplicate(variable));
       $scope.current = getLastCreatedVaribleFromState();
-      variableSrv.addVariable($scope.current);
+      $scope.variables = getVariablesFromState();
+      $scope.$apply();
     };
 
     $scope.update = () => {

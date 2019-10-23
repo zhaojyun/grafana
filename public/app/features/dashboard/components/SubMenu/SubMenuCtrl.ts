@@ -1,6 +1,5 @@
 import angular, { ILocationService, IScope } from 'angular';
 import _ from 'lodash';
-import { VariableSrv } from 'app/features/templating/all';
 import { store } from '../../../../store/store';
 import { variableUpdated } from 'app/features/templating/state/actions';
 import { getVariablesFromState } from '../../../templating/state/reducer';
@@ -11,9 +10,9 @@ export class SubMenuCtrl {
   dashboard: any;
 
   /** @ngInject */
-  constructor(private variableSrv: VariableSrv, private $location: ILocationService, private $scope: IScope) {
+  constructor(private $location: ILocationService, private $scope: IScope) {
     this.annotations = this.dashboard.templating.list;
-    this.variables = this.variableSrv.variables;
+    this.variables = getVariablesFromState();
   }
 
   annotationStateChanged() {

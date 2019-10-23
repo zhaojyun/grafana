@@ -14,6 +14,7 @@ import { ThunkResult } from '../../../types';
 import { getVariableFromState, getVariableHandler } from './reducer';
 import { Graph } from '../../../core/utils/dag';
 import { DashboardModel } from '../../dashboard/state';
+import { default as templateSrv } from '../template_srv';
 
 export interface CreateVariableFromModel<T extends VariableModel> {
   model: T;
@@ -87,6 +88,34 @@ export interface FiltersAdded {
 }
 
 export const filtersAdded = actionCreatorFactory<FiltersAdded>('Core.Templating.filtersAdded').create();
+
+export const addVariable = (variable: VariableModel): ThunkResult<void> => {
+  return (dispatch, getState) => {
+    dispatch(createVariableFromModel({ model: variable }));
+    templateSrv.updateIndex();
+
+    const dashboard = getState().dashboard.model as DashboardModel;
+    if (!dashboard) {
+      return;
+    }
+
+    dashboard.updateSubmenuVisibility();
+  };
+};
+
+export const duplicate = (variable: VariableModel): ThunkResult<void> => {
+  return (dispatch, getState) => {
+    dispatch(duplicateVariable({ copyFromId: variable.id }));
+    templateSrv.updateIndex();
+
+    const dashboard = getState().dashboard.model as DashboardModel;
+    if (!dashboard) {
+      return;
+    }
+
+    dashboard.updateSubmenuVisibility();
+  };
+};
 
 export const setValue = (variable: VariableModel, option: VariableOption): ThunkResult<void> => {
   return async dispatch => {

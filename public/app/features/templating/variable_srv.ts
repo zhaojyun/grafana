@@ -15,9 +15,15 @@ import { store } from 'app/store/store';
 import { createVariableFromModel, processVariable } from './state/actions';
 import { getLastCreatedVaribleFromState, getVariablesFromState } from './state/reducer';
 
+const logDeprecationWarning = (functionName: string) =>
+  console.warn(
+    `Function ${functionName} was called on VariableSrv.` +
+      'VariableSrv has moved to Redux state so this will probably not work as expected'
+  );
+
 export class VariableSrv {
   dashboard: DashboardModel;
-  variables: any[];
+  private variables: any[];
 
   /** @ngInject */
   constructor(
@@ -30,6 +36,7 @@ export class VariableSrv {
   }
 
   async init(dashboard: DashboardModel) {
+    logDeprecationWarning('init');
     this.dashboard = dashboard;
     this.dashboard.events.on(CoreEvents.timeRangeUpdated, this.onTimeRangeUpdated.bind(this));
     this.dashboard.events.on(
@@ -53,6 +60,7 @@ export class VariableSrv {
   }
 
   onTimeRangeUpdated(timeRange: TimeRange) {
+    logDeprecationWarning('onTimeRangeUpdated');
     this.templateSrv.updateTimeRange(timeRange);
     const promises = this.variables
       .filter(variable => variable.refresh === 2)
@@ -72,6 +80,7 @@ export class VariableSrv {
   }
 
   processVariable(variable: any, queryParams: any) {
+    logDeprecationWarning('processVariable');
     const dependencies = [];
 
     for (const otherVariable of this.variables) {
@@ -101,6 +110,7 @@ export class VariableSrv {
   }
 
   createVariableFromModel(model: any, addToState = true) {
+    logDeprecationWarning('createVariableFromModel');
     // @ts-ignore
     const ctor = variableTypes[model.type].ctor;
     if (!ctor) {
@@ -120,13 +130,14 @@ export class VariableSrv {
   }
 
   addVariable(variable: any) {
-    variable.id = this.variables.length;
+    logDeprecationWarning('addVariable');
     this.variables.push(variable);
     this.templateSrv.updateIndex();
     this.dashboard.updateSubmenuVisibility();
   }
 
   removeVariable(variable: any) {
+    logDeprecationWarning('removeVariable');
     const index = _.indexOf(this.variables, variable);
     this.variables.splice(index, 1);
     this.templateSrv.updateIndex();
@@ -134,10 +145,12 @@ export class VariableSrv {
   }
 
   updateOptions(variable: any) {
+    logDeprecationWarning('updateOptions');
     return variable.updateOptions();
   }
 
   variableUpdated(variable: any, emitChangeEvents?: any) {
+    logDeprecationWarning('variableUpdated');
     // if there is a variable lock ignore cascading update because we are in a boot up scenario
     if (variable.initLock) {
       return this.$q.when();
@@ -161,6 +174,7 @@ export class VariableSrv {
   }
 
   selectOptionsForCurrentValue(variable: any) {
+    logDeprecationWarning('selectOptionsForCurrentValue');
     let i, y, value, option;
     const selected: any = [];
 
@@ -185,6 +199,7 @@ export class VariableSrv {
   }
 
   validateVariableSelectionState(variable: any) {
+    logDeprecationWarning('validateVariableSelectionState');
     if (!variable.current) {
       variable.current = {};
     }
@@ -230,6 +245,7 @@ export class VariableSrv {
    * @param urlValue Value of the query parameter
    */
   setOptionFromUrl(variable: any, urlValue: string | string[]): IPromise<any> {
+    logDeprecationWarning('setOptionFromUrl');
     let promise = this.$q.when();
 
     if (variable.refresh) {
@@ -277,6 +293,7 @@ export class VariableSrv {
   }
 
   setOptionAsCurrent(variable: any, option: any) {
+    logDeprecationWarning('setOptionAsCurrent');
     variable.current = _.cloneDeep(option);
 
     if (_.isArray(variable.current.text) && variable.current.text.length > 0) {
@@ -290,6 +307,7 @@ export class VariableSrv {
   }
 
   updateUrlParamsWithCurrentVariables() {
+    logDeprecationWarning('updateUrlParamsWithCurrentVariables');
     // update url
     const params = this.$location.search();
 
@@ -307,6 +325,7 @@ export class VariableSrv {
   }
 
   setAdhocFilter(options: any) {
+    logDeprecationWarning('setAdhocFilter');
     let variable: any = _.find(this.variables, {
       type: 'adhoc',
       datasource: options.datasource,
@@ -333,6 +352,7 @@ export class VariableSrv {
   }
 
   createGraph() {
+    logDeprecationWarning('createGraph');
     const g = new Graph();
 
     this.variables.forEach(v => {
