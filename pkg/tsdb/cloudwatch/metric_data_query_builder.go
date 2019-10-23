@@ -2,13 +2,14 @@ package cloudwatch
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
-func (mdib *metricDataInputBuilder) buildMetricDataQueries(query *CloudWatchQuery) ([]*cloudwatch.MetricDataQuery, error) {
+func (mdib *metricDataInputBuilder) buildMetricDataQueries(query *cloudWatchQuery) ([]*cloudwatch.MetricDataQuery, error) {
 	metridDataQueries := make([]*cloudwatch.MetricDataQuery, 0)
 	query.SearchExpressions = []string{}
 
@@ -47,45 +48,71 @@ func (mdib *metricDataInputBuilder) buildMetricDataQueries(query *CloudWatchQuer
 	return metridDataQueries, nil
 }
 
-func buildSearchExpression(query *CloudWatchQuery, stat string) string {
-	counter := 1
-	dimensionSchemaKeys := ""
-	dimensionKeys := ""
-	searchTerm := fmt.Sprintf("MetricName=\"%v\" ", query.MetricName)
+func buildSearchExpression(query *cloudWatchQuery, stat string) string {
+	knownDimensions := make(map[string][]string)
+	dimensionNames := []string{}
+	dimensionNamesWithoutKnownValues := []string{}
 
 	for key, values := range query.Dimensions {
-		dimensionSchemaKeys += fmt.Sprintf(",%s", key)
-		hasStar := false
-		keySearchTerm := fmt.Sprintf("%s=(", key)
-		for i, value := range values {
-			keySearchTerm += fmt.Sprintf("\"%s\"", value)
-			if len(values) > 1 && i+1 != len(values) {
-				keySearchTerm += " OR "
-			}
+		dimensionNames = append(dimensionNames, key)
+		hasWildcard := false
+		for _, value := range values {
 			if value == "*" {
-				hasStar = true
+				hasWildcard = true
 				break
 			}
 		}
-		keySearchTerm += ")"
-		if len(query.Dimensions) > 1 && counter != 1 && !hasStar {
-			keySearchTerm = fmt.Sprintf(" AND %s", keySearchTerm)
+		if hasWildcard {
+			dimensionNamesWithoutKnownValues = append(dimensionNamesWithoutKnownValues, key)
+		} else {
+			knownDimensions[key] = values
 		}
+	}
 
-		if !hasStar {
-			searchTerm += keySearchTerm
-		}
-
-		if hasStar || len(values) == 0 {
-			dimensionKeys += fmt.Sprintf(" \"%s\"", key)
-		}
-
-		counter++
+	searchTerm := fmt.Sprintf("MetricName=\"%s\"", query.MetricName)
+	for key, values := range knownDimensions {
+		keyFilter := fmt.Sprintf("%s=%s", key, join(values, " OR ", "\"", "\"", "(", ")"))
+		searchTerm = appendSearch(searchTerm, keyFilter)
 	}
 
 	if query.MatchExact {
-		return fmt.Sprintf("SEARCH('{%s%s} %s', '%s', %s)", query.Namespace, dimensionSchemaKeys, searchTerm, stat, strconv.Itoa(query.Period))
-	} else {
-		return fmt.Sprintf("SEARCH('Namespace=\"%s\" %s  %s', '%s', %s)", query.Namespace, dimensionKeys, searchTerm, stat, strconv.Itoa(query.Period))
+		schema := query.Namespace
+		if len(dimensionNames) > 0 {
+			sort.Strings(dimensionNames)
+			schema += fmt.Sprintf(",%s", join(dimensionNames, ",", "", "", "", ""))
+		}
+
+		return fmt.Sprintf("SEARCH('{%s} %s', '%s', %s)", schema, searchTerm, stat, strconv.Itoa(query.Period))
 	}
+
+	sort.Strings(dimensionNamesWithoutKnownValues)
+	searchTerm = appendSearch(searchTerm, join(dimensionNamesWithoutKnownValues, " ", "\"", "\"", "", ""))
+	return fmt.Sprintf("SEARCH('Namespace=\"%s\" %s', '%s', %s)", query.Namespace, searchTerm, stat, strconv.Itoa(query.Period))
+}
+
+func join(arr []string, delimiter string, valuePrefix string, valueSuffix string, resultPrefix string, resultSuffix string) string {
+	result := ""
+	for index, value := range arr {
+		result += valuePrefix + value + valueSuffix
+		if index+1 != len(arr) {
+			result += delimiter
+		}
+	}
+
+	if len(arr) > 1 {
+		result = resultPrefix + result + resultSuffix
+	}
+
+	return result
+}
+
+func appendSearch(target string, value string) string {
+	if value != "" {
+		if target == "" {
+			return value
+		}
+		return fmt.Sprintf("%v %v", target, value)
+	}
+
+	return target
 }
