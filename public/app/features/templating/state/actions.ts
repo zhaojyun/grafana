@@ -15,6 +15,8 @@ import { getVariableFromState, getVariableHandler } from './reducer';
 import { Graph } from '../../../core/utils/dag';
 import { DashboardModel } from '../../dashboard/state';
 import { default as templateSrv } from '../template_srv';
+import { updateLocation } from '../../../core/actions';
+import { LocationUpdate } from '@grafana/runtime';
 
 export interface CreateVariableFromModel<T extends VariableModel> {
   model: T;
@@ -41,6 +43,12 @@ export interface DuplicateVariable {
 }
 
 export const duplicateVariable = actionCreatorFactory<DuplicateVariable>('Core.Templating.duplicateVariable').create();
+
+export interface RemoveVariable {
+  id: number;
+}
+
+export const removeVariable = actionCreatorFactory<RemoveVariable>('Core.Templating.removeVariable').create();
 
 export interface ChangeVariableType {
   id: number;
@@ -89,9 +97,21 @@ export interface FiltersAdded {
 
 export const filtersAdded = actionCreatorFactory<FiltersAdded>('Core.Templating.filtersAdded').create();
 
+export const updateDashboardAndTemplateSrvVariables = (): ThunkResult<void> => {
+  return (dispatch, getState) => {
+    const variables = getState().templating.variables;
+    const dashboard = getState().dashboard.model as DashboardModel;
+    if (dashboard) {
+      dashboard.templating.list = variables;
+    }
+    templateSrv.variables = variables;
+  };
+};
+
 export const addVariable = (variable: VariableModel): ThunkResult<void> => {
   return (dispatch, getState) => {
     dispatch(createVariableFromModel({ model: variable }));
+    dispatch(updateDashboardAndTemplateSrvVariables());
     templateSrv.updateIndex();
 
     const dashboard = getState().dashboard.model as DashboardModel;
@@ -106,6 +126,22 @@ export const addVariable = (variable: VariableModel): ThunkResult<void> => {
 export const duplicate = (variable: VariableModel): ThunkResult<void> => {
   return (dispatch, getState) => {
     dispatch(duplicateVariable({ copyFromId: variable.id }));
+    dispatch(updateDashboardAndTemplateSrvVariables());
+    templateSrv.updateIndex();
+
+    const dashboard = getState().dashboard.model as DashboardModel;
+    if (!dashboard) {
+      return;
+    }
+
+    dashboard.updateSubmenuVisibility();
+  };
+};
+
+export const remove = (variable: VariableModel): ThunkResult<void> => {
+  return (dispatch, getState) => {
+    dispatch(removeVariable({ id: variable.id }));
+    dispatch(updateDashboardAndTemplateSrvVariables());
     templateSrv.updateIndex();
 
     const dashboard = getState().dashboard.model as DashboardModel;
@@ -121,6 +157,7 @@ export const setValue = (variable: VariableModel, option: VariableOption): Thunk
   return async dispatch => {
     dispatch(setOptionAsCurrent({ id: variable.id, option }));
     dispatch(selectOptionsForCurrentValue({ id: variable.id }));
+    dispatch(updateDashboardAndTemplateSrvVariables());
     dispatch(variableUpdated(variable, true));
   };
 };
@@ -175,10 +212,10 @@ export const variableUpdated = (variable: VariableModel, emitchangeevents?: bool
     }
 
     return Promise.all(promises).then(() => {
-      // TODO: figure out the best way to implement the rows below
       if (emitchangeevents) {
         dashboard.templateVariableValueUpdated(getState().templating.variables);
         dashboard.startRefresh(getState().templating.variables);
+        dispatch(updateUrlParamsWithCurrentVariables());
       }
     });
   };
@@ -187,7 +224,9 @@ export const variableUpdated = (variable: VariableModel, emitchangeevents?: bool
 export const updateOptions = (variable: VariableWithOptions, searchFilter?: string): ThunkResult<void> => {
   return async dispatch => {
     const handler = getVariableHandler(variable.type);
-    return await handler.updateOptions(variable, searchFilter);
+    const updatedVariable = await handler.updateOptions(variable, searchFilter);
+    dispatch(updateDashboardAndTemplateSrvVariables());
+    return updatedVariable;
   };
 };
 
@@ -361,5 +400,39 @@ export const processVariable = (variable: QueryVariableModel, queryParams: any):
 
     dispatch(setInitialized({ id: variableInState.id }));
     return Promise.resolve(getVariableFromState(variableInState));
+  };
+};
+
+export const updateUrlParamsWithCurrentVariables = (): ThunkResult<void> => {
+  return (dispatch, getState) => {
+    dispatch(updateDashboardAndTemplateSrvVariables());
+    // update url
+    const { routeParams, path, query } = getState().location;
+
+    // remove variable params
+    _.each(query, (value, key) => {
+      if (key.indexOf('var-') === 0) {
+        delete query[key];
+      }
+    });
+
+    _.each(routeParams, (value, key) => {
+      if (key.indexOf('var-') === 0) {
+        delete routeParams[key];
+      }
+    });
+
+    // add new values
+    templateSrv.fillVariableValuesForUrl(query);
+    templateSrv.fillVariableValuesForUrl(routeParams);
+
+    // update url
+    const location: LocationUpdate = {
+      query,
+      routeParams,
+      path,
+    };
+
+    dispatch(updateLocation(location));
   };
 };

@@ -59,7 +59,7 @@ export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel>
     name: '',
     hide: 0,
     label: '',
-    current: null,
+    current: {} as VariableOption,
     regex: '',
     options: [],
     query: '',
@@ -84,7 +84,7 @@ export const datasourceVariableHandler: VariableHandler<DataSourceVariableModel>
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, datasourceVariableHandler.getDefaults(), ['id', 'initLock']);
+    assignModelProperties(model, variable, datasourceVariableHandler.getDefaults(), ['id', 'initialized']);
     // don't persist options
     model.options = [];
     return model;

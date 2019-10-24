@@ -53,7 +53,7 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
     includeAll: false,
     allValue: null,
     options: [],
-    current: null,
+    current: {} as VariableOption,
     tags: [],
     useTags: false,
     tagsQuery: '',
@@ -76,7 +76,7 @@ export const queryVariableHandler: VariableHandler<QueryVariableModel> = {
   },
   getSaveModel: (variable, model) => {
     // copy back model properties to model
-    assignModelProperties(model, variable, queryVariableHandler.getDefaults(), ['id', 'initLock']);
+    assignModelProperties(model, variable, queryVariableHandler.getDefaults(), ['id', 'initialized']);
 
     // remove options
     if (variable.refresh !== VariableRefresh.never) {

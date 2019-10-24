@@ -1,5 +1,5 @@
 import { assignModelProperties, Variable, variableTypes } from './variable';
-import { ConstantVariableModel, VariableHandler } from './state/types';
+import { ConstantVariableModel, VariableHandler, VariableOption } from './state/types';
 import { store } from '../../store/store';
 import { optionsLoaded, setOptionFromUrl, setValue } from './state/actions';
 import { getVariableFromState } from './state/reducer';
@@ -20,7 +20,7 @@ export const constantVariableHandler: VariableHandler<ConstantVariableModel> = {
     hide: 2,
     label: '',
     query: '',
-    current: null,
+    current: {} as VariableOption,
     options: [],
     skipUrlSync: false,
     initialized: false,
@@ -37,7 +37,7 @@ export const constantVariableHandler: VariableHandler<ConstantVariableModel> = {
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, constantVariableHandler.getDefaults(), ['id', 'initLock']);
+    assignModelProperties(model, variable, constantVariableHandler.getDefaults(), ['id', 'initialized']);
     return model;
   },
 };

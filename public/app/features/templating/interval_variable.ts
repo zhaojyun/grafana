@@ -44,7 +44,7 @@ export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
     label: '',
     refresh: VariableRefresh.onTimeRangeChanged,
     options: [],
-    current: null,
+    current: {} as VariableOption,
     query: '1m,10m,30m,1h,6h,12h,1d,7d,14d,30d',
     auto: false,
     auto_min: '10s',
@@ -65,7 +65,7 @@ export const intervalVariableHandler: VariableHandler<IntervalVariableModel> = {
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, intervalVariableHandler.getDefaults(), ['id', 'initLock']);
+    assignModelProperties(model, variable, intervalVariableHandler.getDefaults(), ['id', 'initialized']);
     return model;
   },
 };

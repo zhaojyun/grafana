@@ -5,6 +5,7 @@ import {
   duplicateVariable,
   filtersAdded,
   optionsLoaded,
+  removeVariable,
   selectOptionsForCurrentValue,
   setInitialized,
   setOptionAsCurrent,
@@ -20,6 +21,7 @@ import { customVariableHandler } from '../custom_variable';
 import { datasourceVariableHandler } from '../datasource_variable';
 import { intervalVariableHandler } from '../interval_variable';
 import { textBoxVariableHandler } from '../TextBoxVariable';
+import { cleanUpDashboard } from '../../dashboard/state/actions';
 
 export const getLastCreatedVaribleFromState = () => {
   const lastId = store.getState().templating.lastId;
@@ -85,7 +87,12 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
     mapper: (state, action) => {
       const { model } = action.payload;
       const handler = getVariableHandler(model.type);
-      const defaults = { ...handler.getDefaults(), ...model, id: state.nextId };
+      const defaults = {
+        ...handler.getDefaults(),
+        ...removeAngularPropsFromObject(model),
+        id: state.nextId,
+        initialized: false,
+      };
 
       return {
         ...state,
@@ -101,9 +108,9 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
       const { id, model } = action.payload;
 
       // Variable not stored in state yet
-      if (id === -1) {
+      if (!id) {
         const handler = getVariableHandler(model.type);
-        const lastId = state.variables.length;
+        const lastId = state.nextId;
         const defaults = {
           ...handler.getDefaults(),
           ...removeAngularPropsFromObject(model),
@@ -343,6 +350,22 @@ export const templatingReducer = reducerFactory<TemplatingState>(initialState)
         variables,
       };
     },
+  })
+  .addMapper({
+    filter: removeVariable,
+    mapper: (state, action) => {
+      const { id } = action.payload;
+      const variables = state.variables.filter((variable, index) => index !== id);
+
+      return {
+        ...state,
+        variables: variables.map((variable, index) => ({ ...variable, id: index })),
+      };
+    },
+  })
+  .addMapper({
+    filter: cleanUpDashboard,
+    mapper: (state, action) => initialState,
   })
   .create();
 

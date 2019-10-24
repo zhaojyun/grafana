@@ -31,7 +31,7 @@ export const customVariableHandler: VariableHandler<CustomVariableModel> = {
     label: '',
     hide: 0,
     options: [],
-    current: null,
+    current: {} as VariableOption,
     query: '',
     includeAll: false,
     multi: false,
@@ -54,7 +54,7 @@ export const customVariableHandler: VariableHandler<CustomVariableModel> = {
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, customVariableHandler.getDefaults(), ['id', 'initLock']);
+    assignModelProperties(model, variable, customVariableHandler.getDefaults(), ['id', 'initialized']);
     return model;
   },
 };

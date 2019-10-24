@@ -22,7 +22,7 @@ export const textBoxVariableHandler: VariableHandler<TextBoxVariableModel> = {
     hide: VariableHide.dontHide,
     label: '',
     query: '',
-    current: null,
+    current: {} as VariableOption,
     options: [],
     skipUrlSync: false,
     initialized: false,
@@ -40,7 +40,7 @@ export const textBoxVariableHandler: VariableHandler<TextBoxVariableModel> = {
     return variable.current.value;
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, textBoxVariableHandler.getDefaults(), ['id', 'initLock']);
+    assignModelProperties(model, variable, textBoxVariableHandler.getDefaults(), ['id', 'initialized']);
     return model;
   },
 };

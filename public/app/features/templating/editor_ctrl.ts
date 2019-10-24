@@ -7,7 +7,7 @@ import { VariableSrv } from './all';
 import { TemplateSrv } from './template_srv';
 import { AppEvents } from '@grafana/data';
 import { store } from '../../store/store';
-import { addVariable, changeVariableType, duplicate, updateVariable } from './state/actions';
+import { addVariable, changeVariableType, duplicate, remove } from './state/actions';
 import {
   getLastCreatedVaribleFromState,
   getVariableFromState,
@@ -85,7 +85,6 @@ export class VariableEditorCtrl {
     $scope.add = () => {
       if ($scope.isValid()) {
         store.dispatch(addVariable($scope.current));
-        $scope.variables = getVariablesFromState();
         $scope.update();
       }
     };
@@ -137,15 +136,11 @@ export class VariableEditorCtrl {
     };
 
     $scope.runQuery = async () => {
-      await store.dispatch(updateVariable({ id: $scope.current.id, model: $scope.current }));
-      if ($scope.current.id === -1) {
-        // Variable has been added to state but isn't aware of it yet
-        $scope.current.id = store.getState().templating.lastId;
-      }
       $scope.optionsLimit = 20;
       try {
         const handler = getVariableHandler($scope.current.type);
-        return await handler.updateOptions($scope.current);
+        await handler.updateOptions($scope.current);
+        $scope.variables = getVariablesFromState();
       } catch (err) {
         if (err.data && err.data.message) {
           err.message = err.data.message;
@@ -178,7 +173,6 @@ export class VariableEditorCtrl {
       store.dispatch(duplicate(variable));
       $scope.current = getLastCreatedVaribleFromState();
       $scope.variables = getVariablesFromState();
-      $scope.$apply();
     };
 
     $scope.update = () => {
@@ -211,21 +205,22 @@ export class VariableEditorCtrl {
 
     $scope.typeChanged = function() {
       const old = $scope.current;
-      store.dispatch(changeVariableType({ id: old.id, changeToType: $scope.current.type }));
-      $scope.current = getVariableFromState({ id: old.id } as VariableModel);
-      $scope.current.name = old.name;
-      $scope.current.label = old.label;
-
-      const oldIndex = _.indexOf(this.variables, old);
-      if (oldIndex !== -1) {
-        this.variables[oldIndex] = $scope.current;
+      if (old.id) {
+        store.dispatch(changeVariableType({ id: old.id, changeToType: $scope.current.type }));
+        $scope.current = getVariableFromState({ id: old.id } as VariableModel);
+        this.variables = getVariablesFromState();
+      } else {
+        const handler = getVariableHandler(old.type);
+        $scope.current = handler.getDefaults();
+        $scope.name = old.name;
+        $scope.label = old.label;
       }
-
       $scope.validate();
     };
 
     $scope.removeVariable = (variable: any) => {
-      variableSrv.removeVariable(variable);
+      store.dispatch(remove(variable));
+      $scope.variables = getVariablesFromState();
     };
 
     $scope.showMoreOptions = () => {

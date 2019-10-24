@@ -10,7 +10,6 @@ import { TimeSrv } from 'app/features/dashboard/services/TimeSrv';
 import { DashboardModel } from 'app/features/dashboard/state/DashboardModel';
 // Types
 import { TimeRange } from '@grafana/data';
-import { CoreEvents } from 'app/types';
 import { store } from 'app/store/store';
 import { createVariableFromModel, processVariable } from './state/actions';
 import { getLastCreatedVaribleFromState, getVariablesFromState } from './state/reducer';
@@ -38,11 +37,11 @@ export class VariableSrv {
   async init(dashboard: DashboardModel) {
     logDeprecationWarning('init');
     this.dashboard = dashboard;
-    this.dashboard.events.on(CoreEvents.timeRangeUpdated, this.onTimeRangeUpdated.bind(this));
-    this.dashboard.events.on(
-      CoreEvents.templateVariableValueUpdated,
-      this.updateUrlParamsWithCurrentVariables.bind(this)
-    );
+    // this.dashboard.events.on(CoreEvents.timeRangeUpdated, this.onTimeRangeUpdated.bind(this));
+    // this.dashboard.events.on(
+    //   CoreEvents.templateVariableValueUpdated,
+    //   this.updateUrlParamsWithCurrentVariables.bind(this)
+    // );
 
     // create working class models representing variables
     this.variables = dashboard.templating.list = dashboard.templating.list.map((model: any) =>
@@ -54,6 +53,7 @@ export class VariableSrv {
     return Promise.all(this.variables.map(variable => store.dispatch(processVariable(variable, queryParams))))
       .then(() => {
         this.variables = getVariablesFromState();
+        this.templateSrv.variables = getVariablesFromState();
         this.templateSrv.updateIndex();
       })
       .catch(err => console.log(err));

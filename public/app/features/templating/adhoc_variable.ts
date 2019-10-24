@@ -52,7 +52,7 @@ export const adhocVariableHandler: VariableHandler<AdHocVariableModel> = {
     });
   },
   getSaveModel: (variable, model) => {
-    assignModelProperties(model, variable, adhocVariableHandler.getDefaults(), ['id', 'initLock']);
+    assignModelProperties(model, variable, adhocVariableHandler.getDefaults(), ['id', 'initialized']);
     return model;
   },
   setFilters: (variable, filters) => {
