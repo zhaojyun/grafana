@@ -4,7 +4,7 @@ import { DataSourcePluginOptionsEditorProps, DataSourceSettings } from '@grafana
 import { SelectableValue } from '@grafana/data';
 import { getDatasourceSrv } from 'app/features/plugins/datasource_srv';
 import CloudWatchDatasource from '../datasource';
-import { CloudWatchJsonData, CloudWatchSecureJsonData } from '../types';
+import { CloudWatchJsonData, CloudWatchSecureJsonData, defaultRegions } from '../types';
 
 export type Props = DataSourcePluginOptionsEditorProps<CloudWatchJsonData>;
 
@@ -83,45 +83,16 @@ export class ConfigEditor extends PureComponent<Props, State> {
           });
         },
         (err: any) => {
-          const regions = [
-            'ap-east-1',
-            'ap-northeast-1',
-            'ap-northeast-2',
-            'ap-northeast-3',
-            'ap-south-1',
-            'ap-southeast-1',
-            'ap-southeast-2',
-            'ca-central-1',
-            'cn-north-1',
-            'cn-northwest-1',
-            'eu-central-1',
-            'eu-north-1',
-            'eu-west-1',
-            'eu-west-2',
-            'eu-west-3',
-            'me-south-1',
-            'sa-east-1',
-            'us-east-1',
-            'us-east-2',
-            'us-gov-east-1',
-            'us-gov-west-1',
-            'us-iso-east-1',
-            'us-isob-east-1',
-            'us-west-1',
-            'us-west-2',
-          ];
-
+          // expected to fail when asking for regions before
+          // the datasource has been created
           this.setState({
-            regions: regions.map((region: string) => {
+            regions: defaultRegions.map((region: string) => {
               return {
                 value: region,
                 label: region,
               };
             }),
           });
-
-          // expected to fail when creating new datasource
-          // console.error('failed to get latest regions', err);
         }
       );
   }
