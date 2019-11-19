@@ -1290,7 +1290,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_CLOUDWATCH-MXDEV}",
+        "datasource": "${DS_CLOUDWATCH}",
         "definition": "regions()",
         "hide": 0,
         "includeAll": false,
