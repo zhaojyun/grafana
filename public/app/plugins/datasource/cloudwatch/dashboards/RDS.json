@@ -68,7 +68,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -167,7 +167,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -266,7 +266,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -380,7 +380,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -479,7 +479,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -578,7 +578,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -677,7 +677,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -777,7 +777,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -876,7 +876,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -975,7 +975,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -1074,7 +1074,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -1173,7 +1173,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -1272,7 +1272,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "datasource": "${DS_CLOUDWATCH}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -1375,8 +1375,8 @@
       {
         "current": {
           "tags": [],
-          "text": "CloudWatch-mxdev",
-          "value": "CloudWatch-mxdev"
+          "text": "CloudWatch",
+          "value": "CloudWatch"
         },
         "hide": 0,
         "includeAll": false,
