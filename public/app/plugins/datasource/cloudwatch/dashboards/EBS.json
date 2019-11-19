@@ -1272,8 +1272,8 @@
     "list": [
       {
         "current": {
-          "text": "CloudWatch",
-          "value": "CloudWatch"
+          "text": "default",
+          "value": "default"
         },
         "hide": 0,
         "includeAll": false,
