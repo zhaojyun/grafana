@@ -2,15 +2,7 @@
   "__inputs": [
     {
       "name": "DS_CLOUDWATCH",
-      "label": "CloudWatch",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "cloudwatch",
-      "pluginName": "CloudWatch"
-    },
-    {
-      "name": "DS_CLOUDWATCH-MXDEV",
-      "label": "CloudWatch-mxdev",
+      "label": "",
       "description": "",
       "type": "datasource",
       "pluginId": "cloudwatch",
@@ -28,7 +20,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "6.6.0-pre"
+      "version": "6.5.0"
     },
     {
       "type": "panel",
