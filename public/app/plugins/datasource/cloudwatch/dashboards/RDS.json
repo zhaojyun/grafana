@@ -123,7 +123,7 @@
           "matchExact": true,
           "metricName": "CPUUtilization",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Maximum"]
@@ -222,7 +222,7 @@
           "matchExact": true,
           "metricName": "DatabaseConnections",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Sum"]
@@ -321,7 +321,7 @@
           "matchExact": true,
           "metricName": "FreeableMemory",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Average"]
@@ -435,7 +435,7 @@
           "matchExact": true,
           "metricName": "CPUUtilization",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Maximum"]
@@ -534,7 +534,7 @@
           "matchExact": true,
           "metricName": "DatabaseConnections",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Sum"]
@@ -633,7 +633,7 @@
           "matchExact": true,
           "metricName": "FreeStorageSpace",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Average"]
@@ -732,7 +732,7 @@
           "matchExact": true,
           "metricName": "FreeableMemory",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Average"]
@@ -832,7 +832,7 @@
           "matchExact": true,
           "metricName": "ReadThroughput",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Average"]
@@ -931,7 +931,7 @@
           "matchExact": true,
           "metricName": "WriteThroughput",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Average"]
@@ -1030,7 +1030,7 @@
           "matchExact": true,
           "metricName": "ReadLatency",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Maximum"]
@@ -1129,7 +1129,7 @@
           "matchExact": true,
           "metricName": "WriteLatency",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Maximum"]
@@ -1228,7 +1228,7 @@
           "matchExact": true,
           "metricName": "ReadIOPS",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Average"]
@@ -1327,7 +1327,7 @@
           "matchExact": true,
           "metricName": "WriteIOPS",
           "namespace": "AWS/RDS",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Average"]

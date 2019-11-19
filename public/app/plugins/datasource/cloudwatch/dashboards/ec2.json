@@ -117,11 +117,10 @@
             "InstanceId": "*"
           },
           "expression": "",
-          "highResolution": false,
           "matchExact": true,
           "metricName": "CPUUtilization",
           "namespace": "AWS/EC2",
-          "period": "60",
+          "period": "$period",
           "refId": "B",
           "region": "$region",
           "statistics": ["Maximum"]
@@ -221,11 +220,10 @@
             "InstanceId": "*"
           },
           "expression": "SUM(REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkIn\"', 'Sum', $period)))/$period",
-          "highResolution": false,
           "matchExact": true,
           "metricName": "NetworkOut",
           "namespace": "AWS/EC2",
-          "period": "",
+          "period": "$period",
           "refId": "B",
           "region": "$region",
           "statistics": ["Average"]
@@ -236,7 +234,6 @@
             "InstanceId": "*"
           },
           "expression": "SUM(REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkOut\"', 'Sum', $period)))/$period",
-          "highResolution": false,
           "matchExact": true,
           "metricName": "NetworkOut",
           "namespace": "AWS/EC2",
@@ -346,12 +343,11 @@
           "dimensions": {
             "InstanceId": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkIn\"', 'Sum', 60))/60",
-          "highResolution": false,
+          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkIn\"', 'Sum', $period))/$period",
           "matchExact": true,
           "metricName": "NetworkIn",
           "namespace": "AWS/EC2",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Sum"]
@@ -444,12 +440,11 @@
           "dimensions": {
             "InstanceId": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkOut\"', 'Sum', 60))/60",
-          "highResolution": false,
+          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkOut\"', 'Sum', $period))/$period",
           "matchExact": true,
           "metricName": "NetworkIn",
           "namespace": "AWS/EC2",
-          "period": "",
+          "period": "$period",
           "refId": "A",
           "region": "$region",
           "statistics": ["Sum"]
@@ -542,8 +537,7 @@
           "dimensions": {
             "InstanceId": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkPacketsIn\"', 'Sum', 60))/60",
-          "highResolution": false,
+          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkPacketsIn\"', 'Sum', $period))/$period",
           "matchExact": true,
           "metricName": "NetworkPacketsIn",
           "namespace": "AWS/EC2",
@@ -639,8 +633,7 @@
           "dimensions": {
             "InstanceId": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkPacketsOut\"', 'Sum', 60))/60",
-          "highResolution": false,
+          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"NetworkPacketsOut\"', 'Sum', $period))/$period",
           "matchExact": true,
           "metricName": "NetworkPacketsIn",
           "namespace": "AWS/EC2",
@@ -768,8 +761,7 @@
           "dimensions": {
             "InstanceId": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"DiskReadBytes\"', 'Sum', 60))/60",
-          "highResolution": false,
+          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"DiskReadBytes\"', 'Sum', $period))/$period",
           "matchExact": true,
           "metricName": "DiskReadBytes",
           "namespace": "AWS/EC2",
@@ -866,8 +858,7 @@
           "dimensions": {
             "InstanceId": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"DiskWriteBytes\"', 'Sum', 60))/60",
-          "highResolution": false,
+          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"DiskWriteBytes\"', 'Sum', $period))/$period",
           "matchExact": true,
           "metricName": "DiskReadBytes",
           "namespace": "AWS/EC2",
@@ -964,8 +955,7 @@
           "dimensions": {
             "InstanceId": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"DiskReadOps\"', 'Sum', 60))/60",
-          "highResolution": false,
+          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"DiskReadOps\"', 'Sum', $period))/$period",
           "matchExact": true,
           "metricName": "DiskReadBytes",
           "namespace": "AWS/EC2",
@@ -1063,8 +1053,7 @@
           "dimensions": {
             "InstanceId": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"DiskWriteOps\"', 'Sum', 60))/60",
-          "highResolution": false,
+          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EC2,InstanceId} MetricName=\"DiskWriteOps\"', 'Sum', $period))/$period",
           "matchExact": true,
           "metricName": "DiskReadBytes",
           "namespace": "AWS/EC2",
@@ -1173,11 +1162,10 @@
                 "InstanceId": "*"
               },
               "expression": "",
-              "highResolution": false,
               "matchExact": true,
               "metricName": "StatusCheckFailed",
               "namespace": "AWS/EC2",
-              "period": "60",
+              "period": "$period",
               "refId": "A",
               "region": "$region",
               "statistics": ["Sum"]
@@ -1272,11 +1260,10 @@
                 "InstanceId": "*"
               },
               "expression": "",
-              "highResolution": false,
               "matchExact": true,
               "metricName": "StatusCheckFailed",
               "namespace": "AWS/EC2",
-              "period": "60",
+              "period": "$period",
               "refId": "A",
               "region": "$region",
               "statistics": ["Sum"]
@@ -1371,11 +1358,10 @@
                 "InstanceId": "*"
               },
               "expression": "",
-              "highResolution": false,
               "matchExact": true,
               "metricName": "StatusCheckFailed",
               "namespace": "AWS/EC2",
-              "period": "60",
+              "period": "$period",
               "refId": "A",
               "region": "$region",
               "statistics": ["Sum"]
@@ -1511,7 +1497,7 @@
     "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
   },
   "timezone": "",
-  "title": "Nils EC2",
+  "title": "EC2",
   "uid": "QKG34P1Zk",
   "version": 21
 }
