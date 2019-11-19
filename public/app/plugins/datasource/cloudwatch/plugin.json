@@ -8,7 +8,7 @@
   "alerting": true,
   "annotations": true,
   "includes": [
-    { "type": "dashboard", "name": "EC2", "path": "dashboards/EC2.json" },
+    { "type": "dashboard", "name": "EC2", "path": "dashboards/ec2.json" },
     { "type": "dashboard", "name": "EBS", "path": "dashboards/EBS.json" },
     { "type": "dashboard", "name": "Lambda", "path": "dashboards/Lambda.json" },
     { "type": "dashboard", "name": "Logs", "path": "dashboards/Logs.json" },
