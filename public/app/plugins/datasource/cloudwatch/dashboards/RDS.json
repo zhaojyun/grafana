@@ -27,12 +27,6 @@
       "id": "graph",
       "name": "Graph",
       "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "text",
-      "name": "Text",
-      "version": ""
     }
   ],
   "annotations": {
@@ -52,157 +46,55 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1574177036715,
+  "iteration": 1574153861582,
   "links": [],
   "panels": [
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "description": "",
-      "fill": 1,
-      "fillGradient": 0,
+      "collapsed": false,
+      "datasource": "${DS_CLOUDWATCH}",
       "gridPos": {
-        "h": 9,
+        "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
       },
-      "hiddenSeries": false,
-      "id": 2,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": false,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [
-        {
-          "alias": "Write",
-          "transform": "negative-Y"
-        }
-      ],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "alias": "Read",
-          "dimensions": {
-            "VolumeId": "*"
-          },
-          "expression": "SUM(REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeReadBytes\"', 'Sum', $period)))/$period",
-          "matchExact": true,
-          "metricName": "VolumeReadBytes",
-          "namespace": "AWS/EBS",
-          "period": "$period",
-          "refId": "A",
-          "region": "$region",
-          "statistics": ["Sum"]
-        },
-        {
-          "alias": "Write",
-          "dimensions": {
-            "VolumeId": "*"
-          },
-          "expression": "SUM(REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeWriteBytes\"', 'Sum', $period)))/$period",
-          "matchExact": true,
-          "metricName": "VolumeReadBytes",
-          "namespace": "AWS/EBS",
-          "period": "$period",
-          "refId": "B",
-          "region": "$region",
-          "statistics": ["Sum"]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Total volumes read (+) and write (-) [bytes/sec]",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
+      "id": 7,
+      "panels": [],
+      "title": "Cluster metrics",
+      "type": "row"
     },
     {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
-      "fill": 1,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
-        "w": 12,
+        "h": 8,
+        "w": 24,
         "x": 0,
-        "y": 9
+        "y": 1
       },
       "hiddenSeries": false,
-      "id": 12,
+      "id": 5,
       "legend": {
-        "alignAsTable": false,
-        "avg": false,
+        "alignAsTable": true,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
+        "sort": "avg",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
-      "nullPointMode": "null as zero",
+      "nullPointMode": "null",
       "options": {
         "dataLinks": []
       },
@@ -213,27 +105,27 @@
       "seriesOverrides": [],
       "spaceLength": 10,
       "stack": false,
-      "steppedLine": true,
+      "steppedLine": false,
       "targets": [
         {
           "dimensions": {
-            "VolumeId": "*"
+            "DBClusterIdentifier": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeReadBytes\"', 'Sum', $period))/$period",
+          "expression": "",
           "matchExact": true,
-          "metricName": "VolumeReadBytes",
-          "namespace": "AWS/EBS",
+          "metricName": "CPUUtilization",
+          "namespace": "AWS/RDS",
           "period": "$period",
           "refId": "A",
           "region": "$region",
-          "statistics": ["Sum"]
+          "statistics": ["Maximum"]
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Volume READ per instance [bytes/sec]",
+      "title": "CPU utilization per cluster [%]",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -275,31 +167,643 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
-      "fill": 1,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "hiddenSeries": false,
+      "id": 8,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "dimensions": {
+            "DBClusterIdentifier": "*"
+          },
+          "expression": "",
+          "matchExact": true,
+          "metricName": "DatabaseConnections",
+          "namespace": "AWS/RDS",
+          "period": "$period",
+          "refId": "A",
+          "region": "$region",
+          "statistics": ["Sum"]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Database connections [count sum]",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
         "w": 12,
         "x": 12,
         "y": 9
+      },
+      "hiddenSeries": false,
+      "id": 9,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "dimensions": {
+            "DBClusterIdentifier": "*"
+          },
+          "expression": "",
+          "matchExact": true,
+          "metricName": "FreeableMemory",
+          "namespace": "AWS/RDS",
+          "period": "$period",
+          "refId": "A",
+          "region": "$region",
+          "statistics": ["Average"]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Available RAM [bytes]",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": null,
+          "format": "decbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "collapsed": false,
+      "datasource": "${DS_CLOUDWATCH}",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 2,
+      "panels": [],
+      "title": "Instance metrics",
+      "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "hiddenSeries": false,
+      "id": 4,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
+          "matchExact": true,
+          "metricName": "CPUUtilization",
+          "namespace": "AWS/RDS",
+          "period": "$period",
+          "refId": "A",
+          "region": "$region",
+          "statistics": ["Maximum"]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "CPU utilization per instance [%]",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "hiddenSeries": false,
+      "id": 10,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
+          "matchExact": true,
+          "metricName": "DatabaseConnections",
+          "namespace": "AWS/RDS",
+          "period": "$period",
+          "refId": "A",
+          "region": "$region",
+          "statistics": ["Sum"]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Database connections [count sum]",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 34
       },
       "hiddenSeries": false,
       "id": 11,
       "legend": {
-        "alignAsTable": false,
-        "avg": false,
+        "alignAsTable": true,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
+        "sort": "avg",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
-      "nullPointMode": "null as zero",
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
+          "matchExact": true,
+          "metricName": "FreeStorageSpace",
+          "namespace": "AWS/RDS",
+          "period": "$period",
+          "refId": "A",
+          "region": "$region",
+          "statistics": ["Average"]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Available storage space [bytes]",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "decbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 34
+      },
+      "hiddenSeries": false,
+      "id": 12,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
+          "matchExact": true,
+          "metricName": "FreeableMemory",
+          "namespace": "AWS/RDS",
+          "period": "$period",
+          "refId": "A",
+          "region": "$region",
+          "statistics": ["Average"]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Available RAM [bytes]",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": null,
+          "format": "decbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 42
+      },
+      "hiddenSeries": false,
+      "id": 14,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
       "options": {
         "dataLinks": []
       },
@@ -314,108 +818,12 @@
       "targets": [
         {
           "dimensions": {
-            "VolumeId": "*"
+            "DBInstanceIdentifier": "*"
           },
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeWriteBytes\"', 'Sum', $period))/$period",
+          "expression": "",
           "matchExact": true,
-          "metricName": "VolumeReadBytes",
-          "namespace": "AWS/EBS",
-          "period": "$period",
-          "refId": "A",
-          "region": "$region",
-          "statistics": ["Sum"]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Volume WRITE per instance [bytes/sec]",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 18
-      },
-      "hiddenSeries": false,
-      "id": 13,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeReadOps\"', 'Sum', $period))/$period",
-          "matchExact": true,
-          "metricName": "",
-          "namespace": "",
+          "metricName": "ReadThroughput",
+          "namespace": "AWS/RDS",
           "period": "$period",
           "refId": "A",
           "region": "$region",
@@ -426,7 +834,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Volume READ per instance [IOPS]",
+      "title": "Read throughput [bytes/sec]",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -446,7 +854,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -468,223 +876,33 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
-      "fill": 1,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 12,
-        "y": 18
-      },
-      "hiddenSeries": false,
-      "id": 14,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeWriteOps\"', 'Sum', $period))/$period",
-          "matchExact": true,
-          "metricName": "",
-          "namespace": "",
-          "period": "$period",
-          "refId": "A",
-          "region": "$region",
-          "statistics": ["Average"]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Volume WRITE per instance [IOPS]",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 27
-      },
-      "hiddenSeries": false,
-      "id": 15,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeTotalReadTime\"', 'Sum', $period))",
-          "matchExact": true,
-          "metricName": "",
-          "namespace": "",
-          "period": "$period",
-          "refId": "A",
-          "region": "$region",
-          "statistics": ["Average"]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Volume READ per instance [total sec in this period]",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 27
+        "y": 42
       },
       "hiddenSeries": false,
       "id": 16,
       "legend": {
-        "alignAsTable": false,
-        "avg": false,
+        "alignAsTable": true,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
+        "sort": "avg",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
-      "nullPointMode": "null as zero",
+      "nullPointMode": "null",
       "options": {
         "dataLinks": []
       },
@@ -698,12 +916,13 @@
       "steppedLine": true,
       "targets": [
         {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeTotalWriteTime\"', 'Sum', $period))",
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
           "matchExact": true,
-          "metricName": "",
-          "namespace": "",
+          "metricName": "WriteThroughput",
+          "namespace": "AWS/RDS",
           "period": "$period",
           "refId": "A",
           "region": "$region",
@@ -714,7 +933,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Volume WRITE per instance [total sec in this period]",
+      "title": "Write throughput [bytes/sec]",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -734,7 +953,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         },
         {
@@ -756,31 +975,132 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 0,
-        "y": 36
+        "y": 50
+      },
+      "hiddenSeries": false,
+      "id": 13,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
+          "matchExact": true,
+          "metricName": "ReadLatency",
+          "namespace": "AWS/RDS",
+          "period": "$period",
+          "refId": "A",
+          "region": "$region",
+          "statistics": ["Maximum"]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Read latency [sec]",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 50
       },
       "hiddenSeries": false,
       "id": 17,
       "legend": {
-        "alignAsTable": false,
-        "avg": false,
+        "alignAsTable": true,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
+        "sort": "avg",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
-      "nullPointMode": "null as zero",
+      "nullPointMode": "null",
       "options": {
         "dataLinks": []
       },
@@ -794,25 +1114,24 @@
       "steppedLine": true,
       "targets": [
         {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeIdleTime\"', 'Sum', $period))/$period*100",
-          "hide": false,
-          "id": "",
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
           "matchExact": true,
-          "metricName": "",
-          "namespace": "",
+          "metricName": "WriteLatency",
+          "namespace": "AWS/RDS",
           "period": "$period",
           "refId": "A",
           "region": "$region",
-          "statistics": ["Average"]
+          "statistics": ["Maximum"]
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Volume idle time per instance [%]",
+      "title": "Write latency [sec]",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -828,11 +1147,10 @@
       },
       "yaxes": [
         {
-          "decimals": null,
-          "format": "percent",
+          "format": "short",
           "label": null,
           "logBase": 1,
-          "max": "100",
+          "max": null,
           "min": "0",
           "show": true
         },
@@ -855,31 +1173,132 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 58
+      },
+      "hiddenSeries": false,
+      "id": 15,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
+          "matchExact": true,
+          "metricName": "ReadIOPS",
+          "namespace": "AWS/RDS",
+          "period": "$period",
+          "refId": "A",
+          "region": "$region",
+          "statistics": ["Average"]
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Read operations [IOPS]",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_CLOUDWATCH-MXDEV}",
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
         "w": 12,
         "x": 12,
-        "y": 36
+        "y": 58
       },
       "hiddenSeries": false,
       "id": 18,
       "legend": {
-        "alignAsTable": false,
-        "avg": false,
+        "alignAsTable": true,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
+        "sort": "avg",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
-      "nullPointMode": "null as zero",
+      "nullPointMode": "null",
       "options": {
         "dataLinks": []
       },
@@ -893,14 +1312,13 @@
       "steppedLine": true,
       "targets": [
         {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeQueueLength\"', 'Sum', $period))",
-          "hide": false,
-          "id": "",
+          "dimensions": {
+            "DBInstanceIdentifier": "*"
+          },
+          "expression": "",
           "matchExact": true,
-          "metricName": "",
-          "namespace": "",
+          "metricName": "WriteIOPS",
+          "namespace": "AWS/RDS",
           "period": "$period",
           "refId": "A",
           "region": "$region",
@@ -911,7 +1329,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Volume queue length [number of requests]",
+      "title": "Write operations [IOPS]",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -927,7 +1345,6 @@
       },
       "yaxes": [
         {
-          "decimals": null,
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -948,323 +1365,8 @@
         "align": false,
         "alignLevel": null
       }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 45
-      },
-      "hiddenSeries": false,
-      "id": 21,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeThroughputPercentage\"', 'Average', $period))",
-          "hide": false,
-          "id": "",
-          "matchExact": true,
-          "metricName": "",
-          "namespace": "",
-          "period": "$period",
-          "refId": "A",
-          "region": "$region",
-          "statistics": ["Average"]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Volume throughput per instance [% IOPS delivered/provisioned]",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 45
-      },
-      "hiddenSeries": false,
-      "id": 22,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"VolumeConsumedReadWriteOps\"', 'Sum', $period))",
-          "hide": false,
-          "id": "",
-          "matchExact": true,
-          "metricName": "",
-          "namespace": "",
-          "period": "$period",
-          "refId": "A",
-          "region": "$region",
-          "statistics": ["Average"]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Volume consumed read write ops per instance [count of 256K capacity units]",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 54
-      },
-      "hiddenSeries": false,
-      "id": 23,
-      "legend": {
-        "alignAsTable": false,
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "alias": "{{label}}",
-          "dimensions": {},
-          "expression": "REMOVE_EMPTY(SEARCH('{AWS/EBS,VolumeId} MetricName=\"BurstBalance\"', 'Sum', $period))",
-          "hide": false,
-          "id": "",
-          "matchExact": true,
-          "metricName": "",
-          "namespace": "",
-          "period": "$period",
-          "refId": "A",
-          "region": "$region",
-          "statistics": ["Average"]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Burst balance per instance [%]",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "content": "For more information, see [Amazon CloudWatch Metrics for Amazon EBS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using_cloudwatch_ebs.html).\n\n\n\n",
-      "datasource": "${DS_CLOUDWATCH}",
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 63
-      },
-      "id": 20,
-      "mode": "markdown",
-      "options": {},
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Info",
-      "type": "text"
     }
   ],
-  "refresh": false,
   "schemaVersion": 21,
   "style": "dark",
   "tags": [],
@@ -1272,8 +1374,9 @@
     "list": [
       {
         "current": {
-          "text": "CloudWatch",
-          "value": "CloudWatch"
+          "tags": [],
+          "text": "CloudWatch-mxdev",
+          "value": "CloudWatch-mxdev"
         },
         "hide": 0,
         "includeAll": false,
@@ -1290,7 +1393,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_CLOUDWATCH-MXDEV}",
+        "datasource": "$datasource",
         "definition": "regions()",
         "hide": 0,
         "includeAll": false,
@@ -1313,9 +1416,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "tags": [],
-          "text": "300",
-          "value": "300"
+          "text": "60",
+          "value": "60"
         },
         "hide": 0,
         "includeAll": false,
@@ -1348,7 +1450,7 @@
     "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
   },
   "timezone": "",
-  "title": "EBS",
-  "uid": "VgpJGb1Za",
-  "version": 13
+  "title": "RDS",
+  "uid": "-83p4WxZz",
+  "version": 6
 }
