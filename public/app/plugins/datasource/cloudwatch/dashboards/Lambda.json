@@ -817,14 +817,11 @@
   "refresh": false,
   "schemaVersion": 21,
   "style": "dark",
-  "tags": ["CloudWatch", "Lambda"],
+  "tags": ["Amazon", "AWS", "CloudWatch", "Lambda"],
   "templating": {
     "list": [
       {
-        "current": {
-          "text": "default",
-          "value": "default"
-        },
+        "current": {},
         "hide": 0,
         "includeAll": false,
         "label": "Datasource",
@@ -899,7 +896,7 @@
   },
   "timezone": "",
   "description": "Visualize AWS Lambda metrics",
-  "title": "Lambda",
+  "title": "AWS Lambda",
   "uid": "iFe1F7xZas",
   "version": 1
 }
