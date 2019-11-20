@@ -1267,7 +1267,7 @@
   "refresh": false,
   "schemaVersion": 21,
   "style": "dark",
-  "tags": [],
+  "tags": ["CloudWatch", "EBS"],
   "templating": {
     "list": [
       {
@@ -1341,7 +1341,7 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {
@@ -1349,6 +1349,7 @@
   },
   "timezone": "",
   "title": "EBS",
-  "uid": "VgpJGb1Zb",
-  "version": 14
+  "description": "Visualize AWS EBS metrics",
+  "uid": "VgpJGb1Zo",
+  "version": 1
 }
