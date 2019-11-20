@@ -1267,14 +1267,11 @@
   "refresh": false,
   "schemaVersion": 21,
   "style": "dark",
-  "tags": ["CloudWatch", "EBS"],
+  "tags": ["Amazon", "AWS", "CloudWatch", "EBS"],
   "templating": {
     "list": [
       {
-        "current": {
-          "text": "default",
-          "value": "default"
-        },
+        "current": {},
         "hide": 0,
         "includeAll": false,
         "label": "Datasource",
@@ -1348,8 +1345,8 @@
     "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
   },
   "timezone": "",
-  "title": "EBS",
-  "description": "Visualize AWS EBS metrics",
+  "title": "Amazon EBS",
+  "description": "Visualize Amazon EBS metrics",
   "uid": "VgpJGb1Zo",
   "version": 1
 }

@@ -1416,14 +1416,11 @@
   "refresh": false,
   "schemaVersion": 21,
   "style": "dark",
-  "tags": ["CloudWatch", "EC2"],
+  "tags": ["Amazon", "AWS", "CloudWatch", "EC2"],
   "templating": {
     "list": [
       {
-        "current": {
-          "text": "default",
-          "value": "default"
-        },
+        "current": {},
         "hide": 0,
         "includeAll": false,
         "label": "Datasource",
@@ -1497,8 +1494,8 @@
     "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
   },
   "timezone": "",
-  "description": "Visualize AWS ECS metrics",
-  "title": "EC2",
+  "description": "Visualize Amazon EC2 metrics",
+  "title": "Amazon EC2",
   "uid": "QKG34P1Za",
   "version": 1
 }
