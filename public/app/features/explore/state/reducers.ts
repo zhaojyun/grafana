@@ -58,6 +58,7 @@ import {
   queryStoreSubscriptionAction,
   setPausedStateAction,
   toggleGraphAction,
+  willImportChangesAction,
 } from './actionTypes';
 import { reducerFactory, ActionOf } from 'app/core/redux';
 import { updateLocation } from 'app/core/actions/location';
@@ -113,6 +114,7 @@ export const makeExploreItemState = (): ExploreItemState => ({
   isLive: false,
   isPaused: false,
   urlReplaced: false,
+  willImportChanges: false,
   queryResponse: createEmptyQueryResponse(),
 });
 
@@ -237,8 +239,16 @@ export const itemReducer = reducerFactory<ExploreItemState>({} as ExploreItemSta
       return {
         ...state,
         originPanelId: undefined,
+        willImportChanges: false,
       };
     },
+  })
+  .addMapper({
+    filter: willImportChangesAction,
+    mapper: (state, action): ExploreItemState => ({
+      ...state,
+      willImportChanges: action.payload.toggle,
+    }),
   })
   .addMapper({
     filter: highlightLogsExpressionAction,
@@ -262,6 +272,7 @@ export const itemReducer = reducerFactory<ExploreItemState>({} as ExploreItemSta
         queryKeys: getQueryKeys(queries, state.datasourceInstance),
         ...ui,
         originPanelId,
+        willImportChanges: false,
         update: makeInitialUpdateState(),
       };
     },
@@ -706,6 +717,7 @@ export const exploreReducer = (state = initialExploreState, action: HigherOrderA
           ...initialExploreItemState,
           queries: state.left.queries,
           originPanelId: state.left.originPanelId,
+          willImportChanges: state.left.willImportChanges,
         },
       };
     }

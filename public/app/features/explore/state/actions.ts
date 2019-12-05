@@ -73,6 +73,7 @@ import {
   ToggleTablePayload,
   updateDatasourceInstanceAction,
   updateUIStateAction,
+  willImportChangesAction,
 } from './actionTypes';
 import { ActionCreator, ActionOf } from 'app/core/redux/actionCreatorFactory';
 import { getTimeZone } from 'app/features/profile/state/selectors';
@@ -231,6 +232,12 @@ export function clearQueries(exploreId: ExploreId): ThunkResult<void> {
 export function clearOrigin(): ThunkResult<void> {
   return dispatch => {
     dispatch(clearOriginAction({ exploreId: ExploreId.left }));
+  };
+}
+
+export function willImportChanges(): ThunkResult<void> {
+  return dispatch => {
+    dispatch(willImportChangesAction({ exploreId: ExploreId.left, toggle: true }));
   };
 }
 
