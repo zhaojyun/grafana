@@ -76,15 +76,6 @@ export interface ClearQueriesPayload {
   exploreId: ExploreId;
 }
 
-export interface ClearOriginPayload {
-  exploreId: ExploreId;
-}
-
-interface WillImportChangesPayload {
-  exploreId: ExploreId;
-  toggle: boolean;
-}
-
 export interface HighlightLogsExpressionPayload {
   exploreId: ExploreId;
   expressions: string[];
@@ -252,18 +243,6 @@ export const changeRefreshIntervalAction = actionCreatorFactory<ChangeRefreshInt
  * Clear all queries and results.
  */
 export const clearQueriesAction = actionCreatorFactory<ClearQueriesPayload>('explore/CLEAR_QUERIES').create();
-
-/**
- * Clear origin panel id.
- */
-export const clearOriginAction = actionCreatorFactory<ClearOriginPayload>('explore/CLEAR_ORIGIN').create();
-
-/**
- * Sets whether queries will be imported from explore when returning to dashboard
- */
-export const willImportChangesAction = actionCreatorFactory<WillImportChangesPayload>(
-  'explore/WILL_IMPORT_CHANGES'
-).create();
 
 /**
  * Highlight expressions in the log results

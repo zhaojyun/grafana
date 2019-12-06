@@ -48,7 +48,6 @@ import {
   ChangeRefreshIntervalPayload,
   changeSizeAction,
   ChangeSizePayload,
-  clearOriginAction,
   clearQueriesAction,
   historyUpdatedAction,
   initializeExploreAction,
@@ -73,7 +72,6 @@ import {
   ToggleTablePayload,
   updateDatasourceInstanceAction,
   updateUIStateAction,
-  willImportChangesAction,
 } from './actionTypes';
 import { ActionCreator, ActionOf } from 'app/core/redux/actionCreatorFactory';
 import { getTimeZone } from 'app/features/profile/state/selectors';
@@ -226,18 +224,6 @@ export function clearQueries(exploreId: ExploreId): ThunkResult<void> {
     dispatch(scanStopAction({ exploreId }));
     dispatch(clearQueriesAction({ exploreId }));
     dispatch(stateSave());
-  };
-}
-
-export function clearOrigin(): ThunkResult<void> {
-  return dispatch => {
-    dispatch(clearOriginAction({ exploreId: ExploreId.left }));
-  };
-}
-
-export function willImportChanges(): ThunkResult<void> {
-  return dispatch => {
-    dispatch(willImportChangesAction({ exploreId: ExploreId.left, toggle: true }));
   };
 }
 

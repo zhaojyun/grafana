@@ -7,6 +7,8 @@ import {
   dashboardInitFailed,
   dashboardInitCompleted,
   cleanUpDashboard,
+  setDashboardQueriesToUpdateAction,
+  clearDashboardQueriesToUpdateAction,
 } from './actions';
 import { reducerFactory } from 'app/core/redux';
 import { processAclItems } from 'app/core/utils/acl';
@@ -18,6 +20,10 @@ export const initialState: DashboardState = {
   isInitSlow: false,
   model: null,
   permissions: [],
+  modifiedQueries: {
+    panelId: undefined,
+    queries: undefined,
+  },
 };
 
 export const dashboardReducer = reducerFactory(initialState)
@@ -83,6 +89,29 @@ export const dashboardReducer = reducerFactory(initialState)
         initError: null,
       };
     },
+  })
+  .addMapper({
+    filter: setDashboardQueriesToUpdateAction,
+    mapper: (state, action) => {
+      const { panelId, queries } = action.payload;
+      return {
+        ...state,
+        modifiedQueries: {
+          panelId,
+          queries,
+        },
+      };
+    },
+  })
+  .addMapper({
+    filter: clearDashboardQueriesToUpdateAction,
+    mapper: state => ({
+      ...state,
+      modifiedQueries: {
+        panelId: undefined,
+        queries: undefined,
+      },
+    }),
   })
   .create();
 
