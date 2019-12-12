@@ -1,14 +1,15 @@
-import _ from 'lodash';
+import _, { omitBy } from 'lodash';
 import angular from 'angular';
 import coreModule from 'app/core/core_module';
 import appEvents from 'app/core/app_events';
 import config from 'app/core/config';
 import { DashboardModel } from 'app/features/dashboard/state/DashboardModel';
 import { DashboardSearchHit } from 'app/types/search';
-import { ContextSrv } from './context_srv';
-import { FolderInfo, DashboardDTO, CoreEvents } from 'app/types';
-import { BackendSrv as BackendService, getBackendSrv as getBackendService, BackendSrvRequest } from '@grafana/runtime';
+import { contextSrv, ContextSrv } from './context_srv';
+import { CoreEvents, DashboardDTO, FolderInfo } from 'app/types';
+import { BackendSrv as BackendService, BackendSrvRequest, getBackendSrv as getBackendService } from '@grafana/runtime';
 import { AppEvents } from '@grafana/data';
+import { Observable, of } from 'rxjs';
 
 export interface DatasourceRequestOptions {
   retry?: number;
@@ -19,6 +20,12 @@ export interface DatasourceRequestOptions {
   headers?: { [key: string]: any };
   silent?: boolean;
   data?: { [key: string]: any };
+}
+
+function serializeParams(data: Record<string, any>) {
+  return Object.keys(data)
+    .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(data[k])}`)
+    .join('&');
 }
 
 export class BackendSrv implements BackendService {
@@ -88,6 +95,44 @@ export class BackendSrv implements BackendService {
     }
 
     throw data;
+  }
+
+  prepareOptions(options: BackendSrvRequest) {
+    options.retry = options.retry ?? 0;
+    const requestIsLocal = !options.url.match(/^http/);
+
+    if (requestIsLocal) {
+      if (contextSrv.user?.orgId) {
+        options.headers = options.headers ?? {};
+        options.headers['X-Grafana-Org-Id'] = contextSrv.user.orgId;
+      }
+
+      if (options.url.startsWith('/')) {
+        options.url = options.url.substring(1);
+      }
+
+      if (options.url.endsWith('/')) {
+        options.url = options.url.slice(0, -1);
+      }
+    }
+
+    return options;
+  }
+
+  requestEx(options: BackendSrvRequest): Observable<any> {
+    const preparedOptions = this.prepareOptions(options);
+    const cleanParams = omitBy(preparedOptions.params, v => v === undefined || v.length === 0);
+    const url = preparedOptions.params ? `${options.url}?${serializeParams(cleanParams)}` : preparedOptions.url;
+    const init = {
+      method: preparedOptions.method,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/plain, */*',
+        ...preparedOptions.headers,
+      },
+      body: JSON.stringify(preparedOptions.data),
+    };
+    return of({ url, init, n: 10 });
   }
 
   request(options: BackendSrvRequest) {
