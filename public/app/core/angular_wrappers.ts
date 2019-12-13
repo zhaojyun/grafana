@@ -21,6 +21,7 @@ import { GraphContextMenu } from 'app/plugins/panel/graph/GraphContextMenu';
 import ReactProfileWrapper from 'app/features/profile/ReactProfileWrapper';
 import { LokiAnnotationsQueryEditor } from '../plugins/datasource/loki/components/AnnotationsQueryEditor';
 import { HelpModal } from './components/help/HelpModal';
+import { FolderPicker } from 'app/features/dashboard/components/FolderPicker';
 
 export function registerAngularDirectives() {
   react2AngularDirective('helpModal', HelpModal, []);
@@ -127,6 +128,20 @@ export function registerAngularDirectives() {
     'defaultUrl',
     'showAccessOptions',
     'dataSourceConfig',
+    ['onChange', { watchDepth: 'reference', wrapApply: true }],
+  ]);
+  react2AngularDirective('folderPicker', FolderPicker, [
+    'labelClass',
+    'rootName',
+    'enableCreateNew',
+    'enableReset',
+    'initialTitle',
+    'initialFolderId',
+    'dashboardId',
+    'onCreateFolder',
+    ['enterFolderCreation', { watchDepth: 'reference', wrapApply: true }],
+    ['exitFolderCreation', { watchDepth: 'reference', wrapApply: true }],
+    ['onLoad', { watchDepth: 'reference', wrapApply: true }],
     ['onChange', { watchDepth: 'reference', wrapApply: true }],
   ]);
 }

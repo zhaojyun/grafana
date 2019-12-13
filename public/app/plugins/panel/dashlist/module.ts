@@ -145,10 +145,10 @@ class DashListCtrl extends PanelCtrl {
     });
   }
 
-  onFolderChange(folder: any) {
+  onFolderChange = (folder: any) => {
     this.panel.folderId = folder.id;
     this.refresh();
-  }
+  };
 }
 
 export { DashListCtrl, DashListCtrl as PanelCtrl };
