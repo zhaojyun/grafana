@@ -108,7 +108,7 @@ export class ManageDashboardsCtrl {
       .then(() => {
         if (!this.folderUid) {
           this.$scope.$digest();
-          return;
+          return Promise.resolve();
         }
 
         return this.backendSrv.getFolderByUid(this.folderUid).then((folder: any) => {

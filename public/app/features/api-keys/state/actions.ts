@@ -1,6 +1,6 @@
 ﻿import { ThunkAction } from 'redux-thunk';
 import { getBackendSrv } from 'app/core/services/backend_srv';
-import { StoreState, ApiKey } from 'app/types';
+import { ApiKey, StoreState } from 'app/types';
 
 export enum ActionTypes {
   LoadApiKeys = 'LOAD_API_KEYS',
@@ -50,7 +50,9 @@ export function deleteApiKey(id: number, includeExpired: boolean): ThunkResult<v
   return async dispatch => {
     getBackendSrv()
       .delete('/api/auth/keys/' + id)
-      .then(dispatch(loadApiKeys(includeExpired)));
+      .then(() => {
+        dispatch(loadApiKeys(includeExpired));
+      });
   };
 }
 

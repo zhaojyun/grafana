@@ -1,5 +1,11 @@
 import _, { omitBy } from 'lodash';
 import angular from 'angular';
+import { fromFetch } from 'rxjs/fetch';
+import { from, merge, NEVER, Observable, throwError } from 'rxjs';
+import { delay, filter, map, mergeMap, retryWhen, tap } from 'rxjs/operators';
+import { AppEvents } from '@grafana/data';
+import { BackendSrv as BackendService, BackendSrvRequest, getBackendSrv as getBackendService } from '@grafana/runtime';
+
 import coreModule from 'app/core/core_module';
 import appEvents from 'app/core/app_events';
 import config from 'app/core/config';
@@ -7,9 +13,6 @@ import { DashboardModel } from 'app/features/dashboard/state/DashboardModel';
 import { DashboardSearchHit } from 'app/types/search';
 import { contextSrv, ContextSrv } from './context_srv';
 import { CoreEvents, DashboardDTO, FolderInfo } from 'app/types';
-import { BackendSrv as BackendService, BackendSrvRequest, getBackendSrv as getBackendService } from '@grafana/runtime';
-import { AppEvents } from '@grafana/data';
-import { Observable, of } from 'rxjs';
 
 export interface DatasourceRequestOptions {
   retry?: number;
@@ -42,11 +45,13 @@ export class BackendSrv implements BackendService {
   ) {}
 
   get(url: string, params?: any) {
-    return this.request({ method: 'GET', url, params });
+    return this.requestEx({ method: 'GET', url, params }).toPromise();
+    //return this.request({ method: 'GET', url, params });
   }
 
   delete(url: string) {
-    return this.request({ method: 'DELETE', url });
+    return this.requestEx({ method: 'DELETE', url }).toPromise();
+    // return this.request({ method: 'DELETE', url });
   }
 
   post(url: string, data?: any) {
@@ -97,6 +102,60 @@ export class BackendSrv implements BackendService {
     throw data;
   }
 
+  observableErrorHandler = (catchErrorStream: Observable<any>) => {
+    const notAuthorizedStream = catchErrorStream.pipe(
+      filter(error => error.status === 401 && !error.isHandled),
+      map(error => {
+        window.location.href = config.appSubUrl + '/logout';
+        return throwError(error);
+      })
+    );
+    const handledStream = catchErrorStream.pipe(
+      delay(50),
+      filter(error => error.isHandled),
+      map(() => NEVER)
+    );
+    const unprocessableEntityStream = catchErrorStream.pipe(
+      delay(50),
+      filter(error => error.status === 422 && !error.isHandled),
+      map(error => {
+        let data = error.data || { message: 'Unexpected error' };
+        if (_.isString(data)) {
+          data = { message: data };
+        }
+        return data;
+      }),
+      tap(data => appEvents.emit(AppEvents.alertWarning, ['Validation failed', data.message])),
+      map(data => throwError(data))
+    );
+    const generalErrorStream = catchErrorStream.pipe(
+      delay(50),
+      filter(error => error.status !== 401 && error.status !== 422 && !error.isHandled),
+      map(error => {
+        let data = error.data || { message: 'Unexpected error' };
+        if (_.isString(data)) {
+          data = { message: data };
+        }
+        return { data, error };
+      }),
+      tap(({ data, error }) => {
+        if (data.message) {
+          let description = '';
+          let message = data.message;
+          if (message.length > 80) {
+            description = message;
+            message = 'Error';
+          }
+
+          appEvents.emit(error.status < 500 ? AppEvents.alertWarning : AppEvents.alertError, [message, description]);
+        }
+      }),
+      map(({ data }) => throwError(data))
+    );
+
+    return merge(notAuthorizedStream, handledStream, unprocessableEntityStream, generalErrorStream);
+  };
+
   prepareOptions(options: BackendSrvRequest) {
     options.retry = options.retry ?? 0;
     const requestIsLocal = !options.url.match(/^http/);
@@ -132,7 +191,44 @@ export class BackendSrv implements BackendService {
       },
       body: JSON.stringify(preparedOptions.data),
     };
-    return of({ url, init, n: 10 });
+    const fetchStream = fromFetch(url, init);
+    const successStream = fetchStream.pipe(filter(response => response.ok === true));
+    const errorStream = fetchStream.pipe(filter(response => response.ok === false));
+    const dataStream = successStream.pipe(
+      mergeMap(response => response.json()),
+      tap(response => {
+        if (options.method !== 'GET' && response?.message && options.showSuccessAlert !== false) {
+          appEvents.emit(AppEvents.alertSuccess, [response.message]);
+        }
+      })
+    );
+    const retryStream = errorStream.pipe(
+      mergeMap(response => throwError(response)),
+      retryWhen(errors =>
+        errors.pipe(
+          mergeMap((error, index) => {
+            const firstAttempt = index === 0;
+            if (error.status !== 401 || !contextSrv.user.isSignedIn || !firstAttempt) {
+              return throwError(error);
+            }
+
+            return from(this.loginPing());
+          })
+        )
+      )
+    );
+
+    return merge(dataStream, retryStream);
+    //   catchError(error => {
+    //     if (error.status === 401) {
+    //       window.location.href = config.appSubUrl + '/logout';
+    //       return throwError(error);
+    //     }
+    //
+    //     setTimeout(error.requestErrorHandler.bind(this, error), 50);
+    //     return throwError(error);
+    //   })
+    // );
   }
 
   request(options: BackendSrvRequest) {
@@ -332,15 +428,19 @@ export class BackendSrv implements BackendService {
   }
 
   deleteFolder(uid: string, showSuccessAlert: boolean) {
-    return this.request({ method: 'DELETE', url: `/api/folders/${uid}`, showSuccessAlert: showSuccessAlert === true });
+    return this.requestEx({
+      method: 'DELETE',
+      url: `/api/folders/${uid}`,
+      showSuccessAlert: showSuccessAlert === true,
+    }).toPromise();
   }
 
   deleteDashboard(uid: string, showSuccessAlert: boolean) {
-    return this.request({
+    return this.requestEx({
       method: 'DELETE',
       url: `/api/dashboards/uid/${uid}`,
       showSuccessAlert: showSuccessAlert === true,
-    });
+    }).toPromise();
   }
 
   deleteFoldersAndDashboards(folderUids: string[], dashboardUids: string[]) {
