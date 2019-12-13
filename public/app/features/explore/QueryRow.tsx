@@ -155,6 +155,7 @@ export class QueryRow extends PureComponent<QueryRowProps, QueryRowState> {
               onChange={this.onChange}
               data={queryResponse}
               absoluteRange={absoluteRange}
+              exploreMode={mode}
             />
           ) : (
             <QueryEditor
