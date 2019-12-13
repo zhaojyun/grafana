@@ -26,7 +26,6 @@ import {
   AnnotationEvent,
   DataFrameView,
   TimeRange,
-  TimeSeries,
   PluginMeta,
   DataSourceApi,
   DataSourceInstanceSettings,
@@ -46,7 +45,7 @@ import {
   LokiRangeQueryRequest,
   LokiStreamResponse,
 } from './types';
-import { ExploreMode } from 'app/types';
+
 import { LegacyTarget, LiveStreams } from './live_streams';
 import LanguageProvider from './language_provider';
 
@@ -134,30 +133,12 @@ export class LokiDatasource extends DataSourceApi<LokiQuery, LokiOptions> {
         expr: this.templateSrv.replace(target.expr, {}, this.interpolateQueryExpr),
       }));
 
-    if (options.exploreMode === ExploreMode.Metrics) {
-      filteredTargets.forEach(target =>
-        subQueries.push(
-          this.runInstantQuery(target, options, filteredTargets.length),
-          this.runRangeQueryWithFallback(target, options, filteredTargets.length)
-        )
-      );
-    } else {
-      filteredTargets.forEach(target =>
-        subQueries.push(
-          this.runRangeQueryWithFallback(target, options, filteredTargets.length).pipe(
-            map(dataQueryResponse => {
-              if (options.exploreMode === ExploreMode.Logs && dataQueryResponse.data.find(d => isTimeSeries(d))) {
-                throw new Error(
-                  'Logs mode does not support queries that return time series data. Please perform a logs query or switch to Metrics mode.'
-                );
-              } else {
-                return dataQueryResponse;
-              }
-            })
-          )
-        )
-      );
-    }
+    filteredTargets.forEach(target =>
+      subQueries.push(
+        this.runInstantQuery(target, options, filteredTargets.length),
+        this.runRangeQueryWithFallback(target, options, filteredTargets.length)
+      )
+    );
 
     // No valid targets, return the empty result to save a round trip.
     if (isEmpty(subQueries)) {
@@ -222,7 +203,10 @@ export class LokiDatasource extends DataSourceApi<LokiQuery, LokiOptions> {
       filter((response: any) => (response.cancelled ? false : true)),
       map((response: { data: LokiResponse }) => {
         if (response.data.data.resultType === LokiResultType.Stream) {
-          throw new Error('Metrics mode does not support logs. Use an aggregation or switch to Logs mode.');
+          return {
+            data: [],
+            key: `${target.refId}_instant`,
+          };
         }
 
         return {
@@ -689,7 +673,3 @@ export function lokiSpecialRegexEscape(value: any) {
 }
 
 export default LokiDatasource;
-
-function isTimeSeries(data: any): data is TimeSeries {
-  return data.hasOwnProperty('datapoints');
-}

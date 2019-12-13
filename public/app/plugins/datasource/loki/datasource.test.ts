@@ -6,7 +6,6 @@ import { BackendSrv } from 'app/core/services/backend_srv';
 import { TemplateSrv } from 'app/features/templating/template_srv';
 import { CustomVariable } from 'app/features/templating/custom_variable';
 import { makeMockLokiDatasource } from './mocks';
-import { ExploreMode } from 'app/types';
 import { of } from 'rxjs';
 import omit from 'lodash/omit';
 
@@ -102,7 +101,6 @@ describe('LokiDatasource', () => {
     test('should try latest endpoint but fall back to legacy endpoint if it cannot be reached', async () => {
       const options = getQueryOptions<LokiQuery>({
         targets: [{ expr: '{job="grafana"}', refId: 'B' }],
-        exploreMode: ExploreMode.Logs,
       });
 
       ds.runLegacyQuery = jest.fn();
@@ -125,7 +123,6 @@ describe('LokiDatasource', () => {
     test('should run instant query and range query when in metrics mode', async () => {
       const options = getQueryOptions<LokiQuery>({
         targets: [{ expr: 'rate({job="grafana"}[5m])', refId: 'A' }],
-        exploreMode: ExploreMode.Metrics,
       });
 
       ds.runInstantQuery = jest.fn(() => of({ data: [] }));
@@ -141,7 +138,6 @@ describe('LokiDatasource', () => {
     test('should just run range query when in logs mode', async () => {
       const options = getQueryOptions<LokiQuery>({
         targets: [{ expr: '{job="grafana"}', refId: 'B' }],
-        exploreMode: ExploreMode.Logs,
       });
 
       ds.runInstantQuery = jest.fn(() => of({ data: [] }));
