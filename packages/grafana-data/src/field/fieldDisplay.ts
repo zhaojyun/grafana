@@ -19,6 +19,7 @@ import { ReducerID, reduceField } from '../transformations/fieldReducer';
 import { ScopedVars } from '../types/ScopedVars';
 import { getTimeField } from '../dataframe/processDataFrame';
 import { applyFieldOverrides } from './fieldOverrides';
+import { formattedValueToString } from '../valueFormats';
 
 export interface FieldDisplayOptions extends FieldConfigSource {
   values?: boolean; // If true show each row value
@@ -269,5 +270,6 @@ function getDisplayText(display: DisplayValue, fallback: string): string {
   if (!display || isEmpty(display.text)) {
     return fallback;
   }
-  return display.text;
+  const text = formattedValueToString(display);
+  return isEmpty(text) ? text : fallback;
 }
