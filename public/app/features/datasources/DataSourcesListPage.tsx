@@ -16,7 +16,13 @@ import { StoreState } from 'app/types';
 import { LayoutMode } from 'app/core/components/LayoutSelector/LayoutSelector';
 
 // Actions
-import { loadDataSources, setDataSourcesLayoutMode, setDataSourcesSearchQuery } from './state/actions';
+import {
+  loadDataSources,
+  setDataSourcesLayoutMode,
+  setDataSourcesSearchQuery,
+  loadDataSource,
+  deleteDataSource,
+} from './state/actions';
 import { getNavModel } from 'app/core/selectors/navModel';
 
 import {
@@ -34,6 +40,8 @@ export interface Props {
   searchQuery: string;
   hasFetched: boolean;
   loadDataSources: typeof loadDataSources;
+  loadDataSource: typeof loadDataSource;
+  deleteDataSource: typeof deleteDataSource;
   setDataSourcesLayoutMode: typeof setDataSourcesLayoutMode;
   setDataSourcesSearchQuery: typeof setDataSourcesSearchQuery;
 }
@@ -57,6 +65,12 @@ export class DataSourcesListPage extends PureComponent<Props> {
   async fetchDataSources() {
     return await this.props.loadDataSources();
   }
+
+  deleteDataSource = async (id: number) => {
+    await this.props.loadDataSource(id);
+    await this.props.deleteDataSource();
+    return await this.fetchDataSources();
+  };
 
   render() {
     const {
@@ -90,7 +104,12 @@ export class DataSourcesListPage extends PureComponent<Props> {
                   linkButton={linkButton}
                   key="action-bar"
                 />,
-                <DataSourcesList dataSources={dataSources} layoutMode={layoutMode} key="list" />,
+                <DataSourcesList
+                  dataSources={dataSources}
+                  layoutMode={layoutMode}
+                  key="list"
+                  deleteDataSource={this.deleteDataSource}
+                />,
               ]}
           </>
         </Page.Contents>
@@ -112,6 +131,8 @@ function mapStateToProps(state: StoreState) {
 
 const mapDispatchToProps = {
   loadDataSources,
+  loadDataSource,
+  deleteDataSource,
   setDataSourcesSearchQuery,
   setDataSourcesLayoutMode,
 };
