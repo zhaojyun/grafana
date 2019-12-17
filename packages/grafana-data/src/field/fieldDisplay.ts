@@ -267,7 +267,7 @@ function createNoValuesFieldDisplay(options: GetFieldDisplayValuesOptions): Fiel
 }
 
 function getDisplayText(display: DisplayValue, fallback: string): string {
-  if (!display || isEmpty(display.text)) {
+  if (!display) {
     return fallback;
   }
   const text = formattedValueToString(display);
