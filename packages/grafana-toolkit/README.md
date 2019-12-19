@@ -9,7 +9,7 @@ grafana-toolkit is a CLI that enables efficient development of Grafana plugins. 
 Set up a new plugin with `grafana-toolkit plugin:create` command:
 
 ```sh
-npx grafana-toolkit plugin:create my-grafana-plugin
+npx @grafana/toolkit plugin:create my-grafana-plugin
 cd my-grafana-plugin
 yarn install
 yarn dev
@@ -126,6 +126,24 @@ You can provide custom Jest configuration with a `package.json` file. For more d
 Currently we support following Jest configuration properties:
 - [`snapshotSerializers`](https://jest-bot.github.io/jest/docs/configuration.html#snapshotserializers-array-string)
 - [`moduleNameMapper`](https://jestjs.io/docs/en/configuration#modulenamemapper-object-string-string)
+
+### How can I customize Webpack rules or plugins?
+You can provide your own webpack configuration.
+Provide a function implementing `CustomWebpackConfigurationGetter` in a file named `webpack.config.js`.
+
+You can import the correct interface and Options from `@grafana/toolkit/src/config`.
+
+Example
+
+```js
+import CustomPlugin from 'custom-plugin';
+
+export const getWebpackConfig = (defaultConfig, options) => {
+    console.log('Custom config');
+    defaultConfig.plugins.push(new CustomPlugin())
+    return defaultConfig;
+};
+```
 
 ### How can I style my plugin?
 We support pure CSS, SASS, and CSS-in-JS approach (via [Emotion](https://emotion.sh/)).
