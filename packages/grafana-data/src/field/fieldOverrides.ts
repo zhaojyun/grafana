@@ -3,9 +3,9 @@ import { DynamicConfigValue, FieldConfig, InterpolateFunction, DataFrame, Field,
 import { fieldMatchers, ReducerID, reduceField } from '../transformations';
 import { FieldMatcher } from '../types/transformations';
 import isNumber from 'lodash/isNumber';
-import toNumber from 'lodash/toNumber';
 import { getDisplayProcessor } from './displayProcessor';
 import { GetFieldDisplayValuesOptions } from './fieldDisplay';
+import { configFields } from './fieldConfigProcessor';
 
 interface OverrideProps {
   match: FieldMatcher;
@@ -140,36 +140,17 @@ interface DynamicConfigValueOptions {
   replaceVariables: InterpolateFunction;
 }
 
-const numericFieldProps: any = {
-  decimals: true,
-  min: true,
-  max: true,
-};
-
-function prepareConfigValue(key: string, input: any, options?: DynamicConfigValueOptions): any {
-  if (options) {
-    // TODO template variables etc
-  }
-
-  if (numericFieldProps[key]) {
-    const num = toNumber(input);
-    if (isNaN(num)) {
-      return null;
-    }
-    return num;
-  } else if (input) {
-    // skips empty string
-    if (key === 'unit' && input === 'none') {
-      return null;
-    }
-  }
-  return input;
-}
-
 export function setDynamicConfigValue(config: FieldConfig, options: DynamicConfigValueOptions) {
   const { value } = options;
-  const v = prepareConfigValue(value.path, value.value, options);
-  set(config, value.path, v);
+  const cfg = configFields.get(value.path);
+  if (cfg) {
+    const existing = (config as any)[value.path];
+    const val = cfg.processValue(value.value, existing, {} as InterpolateFunction);
+    if (val === null || val === undefined) {
+      return;
+    }
+    set(config, value.path, val);
+  }
 }
 
 /**
@@ -180,11 +161,22 @@ export function setFieldConfigDefaults(config: FieldConfig, props?: FieldConfig)
   if (props) {
     const keys = Object.keys(props);
     for (const key of keys) {
-      const val = prepareConfigValue(key, (props as any)[key]);
-      if (val === null || val === undefined) {
+      let val = (props as any)[key];
+      if (key === 'custom') {
+        console.log('TODO process custom values', val);
         continue;
       }
-      set(config, key, val);
+      const cfg = configFields.get(key);
+      if (cfg) {
+        const existing = (config as any)[key];
+        val = cfg.processValue(val, existing, {} as InterpolateFunction);
+        if (val === null || val === undefined) {
+          continue;
+        }
+        set(config, key, val);
+      } else {
+        // Should we remove unused properties?
+      }
     }
   }
 
