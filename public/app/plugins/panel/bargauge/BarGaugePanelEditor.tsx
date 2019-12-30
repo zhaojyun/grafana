@@ -8,6 +8,7 @@ import {
   FieldDisplayEditor,
   FieldPropertiesEditor,
   PanelOptionsGroup,
+  BarGaugeDisplayMode,
   FormLabel,
   Select,
   DataLinksEditor,
@@ -59,6 +60,7 @@ export class BarGaugePanelEditor extends PureComponent<PanelEditorProps<BarGauge
     });
   };
 
+  onLcdCellWidthChange = ({ value }: any) => this.props.onOptionsChange({ ...this.props.options, lcdCellWidth: value });
   onOrientationChange = ({ value }: any) => this.props.onOptionsChange({ ...this.props.options, orientation: value });
   onDisplayModeChange = ({ value }: any) => this.props.onOptionsChange({ ...this.props.options, displayMode: value });
   onToggleShowUnfilled = () => {
@@ -80,6 +82,11 @@ export class BarGaugePanelEditor extends PureComponent<PanelEditorProps<BarGauge
       ? getDataLinksVariableSuggestions(this.props.data.series)
       : getCalculationValueDataLinksVariableSuggestions(this.props.data.series);
     const labelWidth = 6;
+
+    // lcd width
+    const lcdCellWidthOptions = [6, 8, 12, 16, 24, 32].map(value => ({ value: value, label: value.toString() }));
+    const lcdCellWidthDefault = { value: undefined as number, label: 'Auto' };
+    lcdCellWidthOptions.unshift(lcdCellWidthDefault);
 
     return (
       <>
@@ -106,13 +113,25 @@ export class BarGaugePanelEditor extends PureComponent<PanelEditorProps<BarGauge
                 value={displayModes.find(item => item.value === options.displayMode)}
               />
             </div>
-            {options.displayMode !== 'lcd' && (
+            {options.displayMode !== BarGaugeDisplayMode.Lcd && (
               <Switch
                 label="Unfilled"
                 labelClass={`width-${labelWidth}`}
                 checked={options.showUnfilled}
                 onChange={this.onToggleShowUnfilled}
               />
+            )}
+            {options.displayMode === BarGaugeDisplayMode.Lcd && (
+              <div className="form-field">
+                <FormLabel width={labelWidth}>Cell size</FormLabel>
+                <Select
+                  width={12}
+                  options={lcdCellWidthOptions}
+                  defaultValue={lcdCellWidthDefault}
+                  onChange={this.onLcdCellWidthChange}
+                  value={lcdCellWidthOptions.find(item => item.value === options.lcdCellWidth)}
+                />
+              </div>
             )}
           </PanelOptionsGroup>
           <PanelOptionsGroup title="Field">

@@ -5,6 +5,7 @@ import { VizOrientation, SelectableValue } from '@grafana/data';
 export interface BarGaugeOptions extends SingleStatBaseOptions {
   displayMode: BarGaugeDisplayMode;
   showUnfilled: boolean;
+  lcdCellWidth?: number;
 }
 
 export const displayModes: Array<SelectableValue<string>> = [
