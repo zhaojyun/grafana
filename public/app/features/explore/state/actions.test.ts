@@ -1,6 +1,6 @@
 import { changeDatasource, loadDatasource, navigateToExplore, refreshExplore } from './actions';
 import * as Actions from './actions';
-import { ExploreId, ExploreMode, ExploreUpdateState, ExploreUrlState } from 'app/types';
+import { ExploreId, ExploreUpdateState, ExploreUrlState } from 'app/types';
 import { thunkTester } from 'test/core/thunk/thunkTester';
 import {
   initializeExploreAction,
@@ -14,7 +14,7 @@ import {
 import { Emitter } from 'app/core/core';
 import { ActionOf } from 'app/core/redux/actionCreatorFactory';
 import { makeInitialUpdateState } from './reducers';
-import { DataQuery, DefaultTimeZone, LogsDedupStrategy, RawTimeRange, toUtc } from '@grafana/data';
+import { DataQuery, DefaultTimeZone, ExploreMode, LogsDedupStrategy, RawTimeRange, toUtc } from '@grafana/data';
 import { PanelModel } from 'app/features/dashboard/state';
 import { updateLocation } from '../../../core/actions';
 import { MockDataSourceApi } from '../../../../test/mocks/datasource_srv';

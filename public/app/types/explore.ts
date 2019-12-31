@@ -13,15 +13,11 @@ import {
   LogsDedupStrategy,
   AbsoluteTimeRange,
   GraphSeriesXY,
+  ExploreMode,
 } from '@grafana/data';
 
 import { Emitter } from 'app/core/core';
 import TableModel from 'app/core/table_model';
-
-export enum ExploreMode {
-  Metrics = 'Metrics',
-  Logs = 'Logs',
-}
 
 export enum ExploreId {
   left = 'left',

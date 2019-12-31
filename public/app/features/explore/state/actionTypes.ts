@@ -12,8 +12,9 @@ import {
   TimeRange,
   LoadingState,
   AbsoluteTimeRange,
+  ExploreMode,
 } from '@grafana/data';
-import { ExploreId, ExploreItemState, ExploreUIState, ExploreMode } from 'app/types/explore';
+import { ExploreId, ExploreItemState, ExploreUIState } from 'app/types/explore';
 import { actionCreatorFactory, ActionOf } from 'app/core/redux/actionCreatorFactory';
 
 /**  Higher order actions

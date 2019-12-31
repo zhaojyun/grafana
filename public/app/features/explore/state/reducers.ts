@@ -9,7 +9,7 @@ import {
   stopQueryState,
   refreshIntervalToSortOrder,
 } from 'app/core/utils/explore';
-import { ExploreItemState, ExploreState, ExploreId, ExploreUpdateState, ExploreMode } from 'app/types/explore';
+import { ExploreItemState, ExploreState, ExploreId, ExploreUpdateState } from 'app/types/explore';
 import {
   LoadingState,
   toLegacyResponseData,
@@ -20,6 +20,7 @@ import {
   DataQueryRequest,
   PanelEvents,
   TimeZone,
+  ExploreMode,
 } from '@grafana/data';
 import { RefreshPicker } from '@grafana/ui';
 import {

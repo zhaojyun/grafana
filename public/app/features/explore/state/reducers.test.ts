@@ -6,7 +6,7 @@ import {
   initialExploreState,
   createEmptyQueryResponse,
 } from './reducers';
-import { ExploreId, ExploreItemState, ExploreUrlState, ExploreState, ExploreMode } from 'app/types/explore';
+import { ExploreId, ExploreItemState, ExploreUrlState, ExploreState } from 'app/types/explore';
 import { reducerTester } from 'test/core/redux/reducerTester';
 import {
   scanStartAction,
@@ -25,7 +25,7 @@ import { ActionOf } from 'app/core/redux/actionCreatorFactory';
 import { updateLocation } from 'app/core/actions/location';
 import { serializeStateToUrlParam } from 'app/core/utils/explore';
 import TableModel from 'app/core/table_model';
-import { DataSourceApi, DataQuery, LogsDedupStrategy, dateTime, LoadingState } from '@grafana/data';
+import { DataSourceApi, DataQuery, LogsDedupStrategy, dateTime, LoadingState, ExploreMode } from '@grafana/data';
 
 describe('Explore item reducer', () => {
   describe('scanning', () => {

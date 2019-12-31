@@ -30,6 +30,7 @@ import {
   DataQuery,
   DataSourceApi,
   dateTimeForTimeZone,
+  ExploreMode,
   isDateTime,
   LoadingState,
   LogsDedupStrategy,
@@ -38,7 +39,7 @@ import {
   RawTimeRange,
   TimeRange,
 } from '@grafana/data';
-import { ExploreId, ExploreMode, ExploreUIState, QueryOptions } from 'app/types/explore';
+import { ExploreId, ExploreUIState, QueryOptions } from 'app/types/explore';
 import {
   addQueryRowAction,
   changeModeAction,
