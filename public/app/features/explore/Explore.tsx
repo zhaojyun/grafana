@@ -23,6 +23,7 @@ import {
   refreshExplore,
   updateTimeRange,
   toggleGraph,
+  addQueryRow,
 } from './state/actions';
 // Types
 import {
@@ -60,6 +61,9 @@ const getStyles = memoizeOne(() => {
       label: logsMain;
       // Is needed for some transition animations to work.
       position: relative;
+    `,
+    exploreAddButton: css`
+      margin-top: 1em;
     `,
   };
 });
@@ -99,6 +103,7 @@ interface ExploreProps {
   toggleGraph: typeof toggleGraph;
   queryResponse: PanelData;
   originPanelId: number;
+  addQueryRow: typeof addQueryRow;
 }
 
 /**
@@ -193,6 +198,11 @@ export class Explore extends React.PureComponent<ExploreProps> {
     this.onModifyQueries({ type: 'ADD_FILTER_OUT', key, value });
   };
 
+  onClickAddQueryRowButton = () => {
+    const { exploreId, queryKeys } = this.props;
+    this.props.addQueryRow(exploreId, queryKeys.length);
+  };
+
   onModifyQueries = (action: any, index?: number) => {
     const { datasourceInstance } = this.props;
     if (datasourceInstance?.modifyQuery) {
@@ -257,6 +267,7 @@ export class Explore extends React.PureComponent<ExploreProps> {
       timeZone,
       queryResponse,
       syncedTimes,
+      isLive,
     } = this.props;
     const exploreClass = split ? 'explore explore-split' : 'explore';
     const styles = getStyles();
@@ -270,6 +281,17 @@ export class Explore extends React.PureComponent<ExploreProps> {
         {datasourceInstance && (
           <div className="explore-container">
             <QueryRows exploreEvents={this.exploreEvents} exploreId={exploreId} queryKeys={queryKeys} />
+            <div className="gf-form">
+              <button
+                aria-label="Add row button"
+                className={`gf-form-label gf-form-label--btn ${styles.exploreAddButton}`}
+                onClick={this.onClickAddQueryRowButton}
+                disabled={isLive}
+              >
+                <i className={'fa fa-fw fa-plus icon-margin-right'} />
+                <span className="btn-title">{'\xA0' + 'Add query'}</span>
+              </button>
+            </div>
             <ErrorContainer queryErrors={queryResponse.error ? [queryResponse.error] : undefined} />
             <AutoSizer onResize={this.onResize} disableHeight>
               {({ width }) => {
@@ -309,7 +331,7 @@ export class Explore extends React.PureComponent<ExploreProps> {
                             />
                           )}
                           {mode === ExploreMode.Metrics && (
-                            <TableContainer exploreId={exploreId} onClickCell={this.onClickFilterLabel} />
+                            <TableContainer width={width} exploreId={exploreId} onClickCell={this.onClickFilterLabel} />
                           )}
                           {mode === ExploreMode.Logs && (
                             <LogsContainer
@@ -422,6 +444,7 @@ const mapDispatchToProps: Partial<ExploreProps> = {
   setQueries,
   updateTimeRange,
   toggleGraph,
+  addQueryRow,
 };
 
 export default hot(module)(
