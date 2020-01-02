@@ -24,7 +24,15 @@ import { Reducer } from 'redux';
 import { ActionOf } from 'app/core/redux/actionCreatorFactory';
 import { updateLocation } from 'app/core/actions/location';
 import { serializeStateToUrlParam } from 'app/core/utils/explore';
-import { DataSourceApi, DataQuery, LogsDedupStrategy, dateTime, LoadingState, ExploreMode, toDataFrame } from '@grafana/data';
+import {
+  DataSourceApi,
+  DataQuery,
+  LogsDedupStrategy,
+  dateTime,
+  LoadingState,
+  ExploreMode,
+  toDataFrame,
+} from '@grafana/data';
 
 describe('Explore item reducer', () => {
   describe('scanning', () => {
