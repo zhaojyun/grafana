@@ -484,6 +484,11 @@ export interface DataQuery {
   datasource?: string | null;
 
   metric?: any;
+
+  /**
+   * For limiting result lines.
+   */
+  maxLines?: number;
 }
 
 export interface DataQueryError {
