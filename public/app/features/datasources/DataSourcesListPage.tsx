@@ -10,10 +10,13 @@ import EmptyListCTA from 'app/core/components/EmptyListCTA/EmptyListCTA';
 import DataSourcesList from './DataSourcesList';
 
 // Types
-import { DataSourceSettings } from '@grafana/data';
-import { NavModel } from '@grafana/data';
-import { StoreState } from 'app/types';
+import { DataSourceSettings, NavModel } from '@grafana/data';
 import { LayoutMode } from 'app/core/components/LayoutSelector/LayoutSelector';
+import { CoreEvents, StoreState } from 'app/types/';
+
+// Services & utils
+import appEvents from 'app/core/app_events';
+import { getBackendSrv } from 'app/core/services/backend_srv';
 
 // Actions
 import {
@@ -23,8 +26,9 @@ import {
   loadDataSource,
   deleteDataSource,
 } from './state/actions';
-import { getNavModel } from 'app/core/selectors/navModel';
 
+// Selectors
+import { getNavModel } from 'app/core/selectors/navModel';
 import {
   getDataSources,
   getDataSourcesCount,
@@ -66,10 +70,22 @@ export class DataSourcesListPage extends PureComponent<Props> {
     return await this.props.loadDataSources();
   }
 
-  deleteDataSource = async (id: number) => {
-    await this.props.loadDataSource(id);
-    await this.props.deleteDataSource();
-    return await this.fetchDataSources();
+  deleteDataSource = (id: number) => {
+    appEvents.emit(CoreEvents.showConfirmModal, {
+      title: 'Delete',
+      text: 'Are you sure you want to delete this data source?',
+      yesText: 'Delete',
+      icon: 'fa-trash',
+      onConfirm: () => {
+        this.confirmDeleteDataSource(id);
+      },
+    });
+  };
+
+  confirmDeleteDataSource = async (id: number) => {
+    await getBackendSrv()
+      .delete(`/api/datasources/${id}`)
+      .then(() => this.fetchDataSources());
   };
 
   render() {
