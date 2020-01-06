@@ -93,7 +93,6 @@ export class DataSourcesListPage extends PureComponent<Props> {
       dataSources,
       dataSourcesCount,
       navModel,
-      layoutMode,
       searchQuery,
       setDataSourcesSearchQuery,
       setDataSourcesLayoutMode,
@@ -113,19 +112,13 @@ export class DataSourcesListPage extends PureComponent<Props> {
             {hasFetched &&
               dataSourcesCount > 0 && [
                 <OrgActionBar
-                  layoutMode={layoutMode}
                   searchQuery={searchQuery}
                   onSetLayoutMode={mode => setDataSourcesLayoutMode(mode)}
                   setSearchQuery={query => setDataSourcesSearchQuery(query)}
                   linkButton={linkButton}
                   key="action-bar"
                 />,
-                <DataSourcesList
-                  dataSources={dataSources}
-                  layoutMode={layoutMode}
-                  key="list"
-                  deleteDataSource={this.deleteDataSource}
-                />,
+                <DataSourcesList dataSources={dataSources} key="list" deleteDataSource={this.deleteDataSource} />,
               ]}
           </>
         </Page.Contents>
