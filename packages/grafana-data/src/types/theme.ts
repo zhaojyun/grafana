@@ -251,7 +251,5 @@ export interface GrafanaTheme extends GrafanaThemeCommons {
   };
   shadow: {
     pageHeader: string;
-    card: string;
-    panelEditorVizItemHover: string;
   };
 }
