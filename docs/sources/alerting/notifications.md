@@ -100,6 +100,7 @@ To set up PagerDuty, all you have to do is to provide an API key.
 Setting | Description
 ---------- | -----------
 Integration Key | Integration key for PagerDuty.
+Severity | Level for dynamic notifications, default is `critical`
 Auto resolve incidents | Resolve incidents in PagerDuty once the alert goes back to ok
 
 ### Webhook
@@ -170,6 +171,10 @@ Once these two properties are set, you can send the alerts to Kafka for further 
 
 Notifications can be sent by setting up an incoming webhook in Google Hangouts chat. Configuring such a webhook is described [here](https://developers.google.com/hangouts/chat/how-tos/webhooks).
 
+### Squadcast
+
+Squadcast helps you get alerted via Phone call, SMS, Email and Push notifications and lets you take actions on those alerts. Grafana notifications can be sent to Squadcast via a simple incoming webhook. Refer the official [Squadcast support documentation](https://support.squadcast.com/docs/grafana) for configuring these webhooks.
+
 ### All supported notifiers
 
 Name | Type | Supports images | Support alert rule tags
@@ -188,6 +193,7 @@ Prometheus Alertmanager | `prometheus-alertmanager` | yes, external only | yes
 Pushover | `pushover` | yes | no
 Sensu | `sensu` | yes, external only | no
 Slack | `slack` | yes | no
+Squadcast | `webhook` | no | no
 Telegram | `telegram` | yes | no
 Threema | `threema` | yes, external only | no
 VictorOps | `victorops` | yes, external only | no
