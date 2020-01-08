@@ -364,12 +364,12 @@ export interface ExploreQueryFieldProps<
   history: any[];
   onBlur?: () => void;
   absoluteRange?: AbsoluteTimeRange;
-  exploreMode?: ExploreMode.Logs | ExploreMode.Metrics;
+  exploreMode?: ExploreMode;
 }
 
 export interface ExploreStartPageProps {
   datasource?: DataSourceApi;
-  exploreMode: ExploreMode.Logs | ExploreMode.Metrics;
+  exploreMode: ExploreMode;
   onClickExample: (query: DataQuery) => void;
 }
 
@@ -464,7 +464,7 @@ export interface DataQueryRequest<TQuery extends DataQuery = DataQuery> {
   app: CoreApp | string;
 
   cacheTimeout?: string;
-  exploreMode?: ExploreMode.Logs | ExploreMode.Metrics;
+  exploreMode?: ExploreMode;
   rangeRaw?: RawTimeRange;
   timeInfo?: string; // The query time description (blue text in the upper right)
 
