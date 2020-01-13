@@ -196,9 +196,7 @@
     ]
   },
   "prettier": {
-    "trailingComma": "es5",
-    "singleQuote": true,
-    "printWidth": 120
+    "trailingComma": "es5"
   },
   "dependencies": {
     "@babel/polyfill": "7.6.0",
