@@ -64,6 +64,10 @@ export default class CloudWatchDatasource extends DataSourceApi<CloudWatchQuery,
 
   query(options: DataQueryRequest<CloudWatchQuery>) {
     options = angular.copy(options);
+    const noOfQueries = options.targets.reduce(
+      (total, { hide, statistics }) => (hide ? total : total + statistics.length),
+      0
+    );
 
     const queries = _.filter(options.targets, item => {
       return (
@@ -77,7 +81,7 @@ export default class CloudWatchDatasource extends DataSourceApi<CloudWatchQuery,
       item.metricName = this.replace(item.metricName, options.scopedVars, true, 'metric name');
       item.dimensions = this.convertDimensionFormat(item.dimensions, options.scopedVars);
       item.statistics = item.statistics.map(stat => this.replace(stat, options.scopedVars, true, 'statistics'));
-      item.period = String(this.getPeriod(item, options)); // use string format for period in graph query, and alerting
+      item.period = String(this.getPeriod(item, options, noOfQueries)); // use string format for period in graph query, and alerting
       item.id = this.templateSrv.replace(item.id, options.scopedVars);
       item.expression = this.templateSrv.replace(item.expression, options.scopedVars);
 
@@ -125,31 +129,17 @@ export default class CloudWatchDatasource extends DataSourceApi<CloudWatchQuery,
     return this.templateSrv.variables.map(v => `$${v.name}`);
   }
 
-  getPeriod(target: any, options: any, now?: number) {
+  getPeriod(target: any, options: any, noOfQueries?: number) {
     const start = this.convertToCloudWatchTime(options.range.from, false);
-    now = Math.round((now || Date.now()) / 1000);
+    const end = this.convertToCloudWatchTime(options.range.to, true);
+    const rangeInMinutes = (end - start) / 60;
 
     let period;
-    const hourSec = 60 * 60;
-    const daySec = hourSec * 24;
-    if (!target.period) {
-      if (now - start <= daySec * 15) {
-        // until 15 days ago
-        if (target.namespace === 'AWS/EC2') {
-          period = 300;
-        } else {
-          period = 60;
-        }
-      } else if (now - start <= daySec * 63) {
-        // until 63 days ago
-        period = 60 * 5;
-      } else if (now - start <= daySec * 455) {
-        // until 455 days ago
-        period = 60 * 60;
-      } else {
-        // over 455 days, should return error, but try to long period
-        period = 60 * 60;
-      }
+    if (!target.period || target.period === 'auto') {
+      const now = Math.round(Date.now() / 1000);
+      const hours = (now - start) / 60 / 60;
+      const datapointsPerSecond = hours <= 3 ? 180000 : 90000;
+      period = Math.ceil(rangeInMinutes / (datapointsPerSecond / noOfQueries)) * 60;
     } else {
       period = this.templateSrv.replace(target.period, options.scopedVars);
       if (/^\d+$/.test(period)) {
